@@ -1,0 +1,76 @@
+# Unity .gitignore
+
+# --- Згенеровані Unity папки ---
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Дампи пам'яті 
+/[Mm]emoryCaptures/
+
+# Записи 
+/[Rr]ecordings/
+
+# --- IDE ---
+# Rider
+/[Aa]ssets/Plugins/Editor/JetBrains*
+.idea/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Gradle
+.gradle/
+
+# Автогенеровані solution / project файли
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Згенеровані meta-файли
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Звіти про падіння
+sysinfo.txt
+
+# --- Збірки ---
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlytics
+crashlytics-build.properties
+
+# Addressables
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+
+# Тимчасові Android-файли
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# --- Системні файли ---
+.DS_Store
+Thumbs.db
+desktop.ini
