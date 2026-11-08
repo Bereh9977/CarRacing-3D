@@ -9,13 +9,13 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: daef8ac16cf52f54ea7f593920325f69
   - enabled: 1
-    path: Assets/Scenes/Map2.unity
+    path: Assets/Scenes/Map_Beach.unity
     guid: a808f792028521745a164971ea17adcf
   - enabled: 1
     path: Assets/Scenes/Map3.unity
     guid: cbf79afae23218446bf224bff3b3c767
   - enabled: 1
-    path: Assets/Scenes/Map_Beach.unity
+    path: Assets/Scenes/Map2.unity
     guid: bc39b04e81d474044bb063be7c43186e
   - enabled: 1
     path: Assets/Scenes/Map_Champions_Field.unity
