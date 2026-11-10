@@ -1,5 +1,5 @@
 using UnityEngine;
-// using UnityEngine.SceneManagement;   // for choose scene (future)
+using UnityEngine.SceneManagement;   // for choose scene (future)
 
 public class MapSelector : MonoBehaviour
 {
@@ -8,6 +8,6 @@ public class MapSelector : MonoBehaviour
         GameSession.MapId = mapId;
 
         // Choose map by id (future)
-        // SceneManager.LoadScene(mapId);
+        SceneManager.LoadScene(mapId);
     }
 }

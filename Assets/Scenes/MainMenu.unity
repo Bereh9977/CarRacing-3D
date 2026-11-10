@@ -211,7 +211,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: meadowMap
+          m_StringArgument: Map2
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &35481853
@@ -1289,7 +1289,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 450.78, y: 7}
+  m_AnchoredPosition: {x: 450.78003, y: 7}
   m_SizeDelta: {x: -1043.47, y: -410.58}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &272427694
@@ -2116,7 +2116,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -637, y: -213}
+  m_AnchoredPosition: {x: -636.9999, y: -213}
   m_SizeDelta: {x: -1456.28, y: -697.04}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &411373706
@@ -4125,7 +4125,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: tidalMap
+          m_StringArgument: Map3
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &922901951
@@ -4943,7 +4943,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -647, y: 215}
+  m_AnchoredPosition: {x: -646.9999, y: 215}
   m_SizeDelta: {x: -1421.09, y: -583.88}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1034152826
@@ -5818,7 +5818,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -637, y: 186}
+  m_AnchoredPosition: {x: -636.9999, y: 186}
   m_SizeDelta: {x: -1456.28, y: -697.04}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1410601079
@@ -5893,7 +5893,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -485.92993, y: 5}
+  m_AnchoredPosition: {x: -485.93005, y: 5}
   m_SizeDelta: {x: -1087.7, y: -410.59}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1448692728
@@ -6301,7 +6301,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -430.00006, y: -260}
+  m_AnchoredPosition: {x: -430.00012, y: -260}
   m_SizeDelta: {x: -1421.0901, y: -583.88}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1470318417
