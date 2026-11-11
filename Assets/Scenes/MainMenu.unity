@@ -1684,7 +1684,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 450.78003, y: -44.687}
+  m_AnchoredPosition: {x: 450.78003, y: -44.68701}
   m_SizeDelta: {x: -1043.47, y: -453.49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &272427694
@@ -4023,7 +4023,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 4
+          m_StringArgument: car5
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &698990121
@@ -4098,7 +4098,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 8.539978, y: 214.5}
+  m_AnchoredPosition: {x: 8.540039, y: 214.5}
   m_SizeDelta: {x: -1422.8, y: -734.72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &711775781
@@ -4527,7 +4527,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Map2
+          m_StringArgument: Map_Beach
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &787474516
@@ -5181,7 +5181,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Map3
+          m_StringArgument: Map_Summer
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &922901951
@@ -6070,11 +6070,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5872237495304161969, guid: 5aa2961bff3903840a9998e9f989d260, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -826
+      value: -816
       objectReference: {fileID: 0}
     - target: {fileID: 5872237495304161969, guid: 5aa2961bff3903840a9998e9f989d260, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 482.02
+      value: 499
       objectReference: {fileID: 0}
     - target: {fileID: 5872237495304161969, guid: 5aa2961bff3903840a9998e9f989d260, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -6669,7 +6669,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: car1
+          m_StringArgument: car3
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1076730711
@@ -6939,7 +6939,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Map2
+          m_StringArgument: Map_Winter
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1103397944
@@ -7609,7 +7609,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Map2
+          m_StringArgument: Map_Champions_Field
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1365404092
@@ -7896,7 +7896,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -485.92993, y: -44.688}
+  m_AnchoredPosition: {x: -485.92993, y: -44.68799}
   m_SizeDelta: {x: -1087.7, y: -453.49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1448692728
@@ -8304,7 +8304,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -303.46002, y: -268.96997}
+  m_AnchoredPosition: {x: -303.45996, y: -268.96997}
   m_SizeDelta: {x: -1421.09, y: -735.41}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1470318417
@@ -8789,7 +8789,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 4
+          m_StringArgument: car4
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1537797441
@@ -9322,7 +9322,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Map2
+          m_StringArgument: Map3
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1589030162
@@ -9918,7 +9918,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -8.000122, y: 187.82}
+  m_AnchoredPosition: {x: -8.000244, y: 187.82007}
   m_SizeDelta: {x: -1421.09, y: -732.41}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1717464431
@@ -10267,7 +10267,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 6.4400024, y: -264.83997}
+  m_AnchoredPosition: {x: 6.4399414, y: -264.83997}
   m_SizeDelta: {x: -1427, y: -730.72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1818798827
@@ -11844,7 +11844,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: car1
+          m_StringArgument: car2
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2146215410
