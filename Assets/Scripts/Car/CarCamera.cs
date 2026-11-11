@@ -7,6 +7,12 @@ public class CarCamera : MonoBehaviour
     [SerializeField] private Vector3 offset = new Vector3(0f, 4f, -9f); // relative to the car
     [SerializeField] private float smoothing = 5f;
 
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+        transform.position = target.TransformPoint(offset); // start behind the car instead of flying in
+    }
+
     private void LateUpdate()
     {
         Vector3 wanted = target.TransformPoint(offset);
