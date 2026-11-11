@@ -6,4 +6,5 @@ public class CarDefinition : ScriptableObject
     public string id;
     public bool isFree;
     public int price = 3000;
+    public GameObject prefab;
 }

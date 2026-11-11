@@ -17,6 +17,11 @@ public class CarController : MonoBehaviour
     private float throttle;
     private float steer;
 
+    public void SetMaxSpeed(float value)
+    {
+        maxSpeed = value;
+    }
+
     // Both values are -1..1: throttle forward/backward, steer left/right.
     public void SetInput(float throttle, float steer)
     {

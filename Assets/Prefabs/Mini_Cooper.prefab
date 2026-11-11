@@ -74,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4135619687817387230, guid: d75f43f834177b847ab9b9b1e0de4487, type: 3}
       propertyPath: m_Name
-      value: Red_Car
+      value: Mini_Cooper
       objectReference: {fileID: 0}
     - target: {fileID: 4135619687817387230, guid: d75f43f834177b847ab9b9b1e0de4487, type: 3}
       propertyPath: m_Layer
@@ -161,10 +161,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ff8e21310da34a56a3a6e1f8d7a9f12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarController
-  maxSpeed: 37.5
-  maxReverseSpeed: 20
-  acceleration: 125
-  turnSpeed: 200
+  maxSpeed: 35
+  maxReverseSpeed: 18
+  acceleration: 110
+  coastDeceleration: 8
+  turnSpeed: 180
   bounceFactor: 0.65
 --- !u!114 &1014297844915029740
 MonoBehaviour:
@@ -199,7 +200,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.665
+  m_Radius: 0.65
   m_Height: 3.2
   m_Direction: 2
-  m_Center: {x: 0, y: -0.11, z: 0}
+  m_Center: {x: 0, y: -0.1, z: 0}

@@ -2648,7 +2648,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -601.15, y: -265.33997}
+  m_AnchoredPosition: {x: -601.1501, y: -265.33997}
   m_SizeDelta: {x: -1416.5, y: -731.72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &411373706
@@ -4897,7 +4897,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 656.00006, y: 394.66003}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 602.6, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &904113323
 MonoBehaviour:
@@ -4919,7 +4919,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Car3
+  m_text: Porschee 959 Paris Dakar
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4953,7 +4953,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -5537,7 +5537,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 45.995, y: 393.64}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 605.9, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &932657045
 MonoBehaviour:
@@ -5559,7 +5559,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Car2
+  m_text: Subaruu Impreeza
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5593,7 +5593,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -5673,8 +5673,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -561, y: 394.66}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: -565.2, y: 394.66}
+  m_SizeDelta: {x: 589.6, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &939801378
 MonoBehaviour:
@@ -5696,7 +5696,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Car 1
+  m_text: Mini Cooper
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5730,7 +5730,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -5947,7 +5947,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 594.27, y: 187.76}
+  m_AnchoredPosition: {x: 594.27, y: 187.76001}
   m_SizeDelta: {x: -1421.09, y: -732.41}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &965031393
@@ -6273,7 +6273,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -616, y: 195}
+  m_AnchoredPosition: {x: -615.99994, y: 195}
   m_SizeDelta: {x: -1421.09, y: -731.44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1034152826
@@ -7684,7 +7684,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -598, y: 214.5}
+  m_AnchoredPosition: {x: -597.99994, y: 214.5}
   m_SizeDelta: {x: -1422.79, y: -734.72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1410601079
@@ -7896,7 +7896,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -485.92993, y: -44.68799}
+  m_AnchoredPosition: {x: -485.92987, y: -44.68799}
   m_SizeDelta: {x: -1087.7, y: -453.49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1448692728
@@ -8304,7 +8304,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -303.45996, y: -268.96997}
+  m_AnchoredPosition: {x: -303.4599, y: -268.96997}
   m_SizeDelta: {x: -1421.09, y: -735.41}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1470318417
@@ -11345,7 +11345,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -250, y: -71.355}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 603.7, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2028023889
 MonoBehaviour:
@@ -11367,7 +11367,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Car4
+  m_text: Lanncia Stratoss
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11401,7 +11401,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -11650,7 +11650,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 351, y: -71.298}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 596.1, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2129542729
 MonoBehaviour:
@@ -11672,7 +11672,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Car5
+  m_text: Toyotta Celicca
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11706,7 +11706,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0

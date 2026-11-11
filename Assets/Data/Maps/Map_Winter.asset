@@ -17,5 +17,5 @@ MonoBehaviour:
   price: 5000
   requiredLaps: 1
   obstacleType: 1
-  carMaxSpeed: 37.5
-  botMaxSpeed: 33.5
+  carMaxSpeed: 30
+  botMaxSpeed: 26.8
