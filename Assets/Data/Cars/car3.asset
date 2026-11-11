@@ -15,3 +15,4 @@ MonoBehaviour:
   id: car3
   isFree: 0
   price: 3000
+  prefab: {fileID: 3062266661975056555, guid: 112da6ad225a645c3bbabc2a0bc54d39, type: 3}
