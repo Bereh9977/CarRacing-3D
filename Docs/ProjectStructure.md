@@ -27,13 +27,13 @@ The diagrams can show everything regardless of status. The status only says how 
 - **Countdown.** Before every lap: the pictures 3, 2, 1 and GO from the pygame game, one second each. Cars can't move until GO.
 - **Prize (Single only):** win **+200 coins**, tie **+100 coins**, loss 0.
 - **Coins:** each race shows **5 random coins** of the ones placed on the map (at least 5), **+100 coins** each. Only the player collects them; Single mode only.
-- **Obstacles:** each map has a pool of 12 places. At race start **4 random ones** are switched on. They affect only cars driven by people, not the bot.
+- **Obstacles:** each map has a pool of places (12 in pygame, at least 4). At race start **4 random ones** are switched on. They affect only cars driven by people (both cars in Doubles), not the bot.
 
   | Obstacle | Maps | Effect | Disappears after a hit |
   |---|---|---|---|
-  | Ice cube | Winter | the car freezes for 1 s | yes |
-  | Banana peel | Map3, Beach | the car spins for 1 s with no control | yes |
-  | Sand pile | Map2 | while on it, the car turns by itself in a random direction that changes every 1.5 s | no |
+  | Ice cube | Winter | like sand but stronger: while on it, the car turns by itself (270°/s) | no |
+  | Banana peel | Summer | the car spins in place for 1 s (720°/s) with no control, then goes on with its speed | yes |
+  | Sand pile | Map2, Map3, Beach | while on it, the car turns by itself in a random direction that changes every 1.5 s (135°/s, a bit more than steering) | no |
 
 - **Walls** (road borders and fences) bounce the car back with 65 % of its speed, reversed.
 
@@ -80,7 +80,7 @@ Assets/
 │   ├── Car/             CarController ✅, PlayerCarInput ✅, CarCamera ✅, BotDriver 🧪
 │   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 📋, RaceTracker 📋, Checkpoint 📋,
 │   │                    RaceHud 📋, PauseMenu 📋
-│   ├── Pickups/         Coin 🧪, Obstacle 📋
+│   ├── Pickups/         Coin 🧪, Obstacle 🧪
 │   ├── Audio/           AudioManager 📋
 │   ├── Data/            MapConfig ✅, CarDefinition ✅, ObstacleType ✅
 │   ├── Core/            SaveData ✅, SaveService ✅, MapRecord 📋
@@ -128,7 +128,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `Lighting`, `Environment`, `Track`, `Decorations` | Groups made by the Organize tool | ✅ |
 | Start/finish road piece | Contains the `FinishLine` trigger | 🧪 |
 | `Coins` group | at least 5 `Coin` / `StarCoin` objects; the race shows 5 random ones | ✅ |
-| `Obstacles` group | 12 `Obstacle` objects (maps with obstacles only) | placed ✅, script 📋 |
+| `Obstacles` group | at least 4 `Obstacle` objects of the map's type (maps with obstacles only) | 🧪 |
 | `Checkpoints` group | 8 `Checkpoint` triggers across the road, in driving order | 📋 |
 | `BotRoute` | Route points for the bot along the road (children, in order), made by **Tools → Car Racing → Generate Bot Route**. A plain object, no script | ✅ |
 | `Race` (prefab) | Everything the race needs; see 3.3 | 🧪 |
@@ -164,7 +164,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `RaceHud` | MonoBehaviour | Race | 📋 | All texts and panels during the race |
 | `PauseMenu` | MonoBehaviour | Race | 📋 | Esc pause: Resume, Options, Menu |
 | `Coin` | MonoBehaviour | Pickups | 🧪 | +100 coins on pickup |
-| `Obstacle` | MonoBehaviour | Pickups | 📋 | Ice / banana / sand effect |
+| `Obstacle` | MonoBehaviour | Pickups | 🧪 | Ice / banana / sand effect |
 | `AudioManager` | MonoBehaviour, one per game | Audio | 📋 | Music playlist and sound effects |
 | `MapConfig` | ScriptableObject | Data | ✅ | Map settings |
 | `CarDefinition` | ScriptableObject | Data | ✅ | Car settings |
@@ -213,9 +213,8 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ SetInput(throttle: float, steer: float)`: both −1…1
   - `+ Stop()` 🧪: speed 0 on the spot (when a lap ends and during the countdown)
   - `+ ResetTo(spawn: Transform)` 🧪: puts the car on the spawn point and sets speed 0
-  - `+ Freeze(seconds: float)` 📋: ice
-  - `+ Spin(seconds: float)` 📋: banana
-  - `+ SetOnSand(onSand: bool)` 📋: sand; picks a new random direction every 1.5 s
+  - `+ Spin(seconds: float)` 🧪: banana
+  - `+ SetDrift(degreesPerSecond: float)` 🧪: sand (135) and ice (270); 0 ends it: sand; picks a new random direction every 1.5 s
   - `- Awake()`
   - `- FixedUpdate()`: speed, steering and velocity. While frozen it does nothing; while spinning it only rotates.
   - `- OnCollisionEnter(collision)`: bounce off `Wall`; raises `WallHit` 📋
@@ -272,9 +271,8 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- SpawnCar(definition, spawn, maxSpeed): CarController` 📋
   - `- ShowCoins()` 🧪: "Coins: N" from `SaveService.Data.coins`; called at the start, on `Coin.Collected` and after the prize. Hidden in Doubles
   - `- OnDestroy()` 🧪: unsubscribes from the static `Coin.Collected`
-  - `- SetUpCoins()` 🧪: Single: 5 random coins stay on; Doubles: all coins off
+  - `- KeepRandom(items: Component[], keep: int)` 🧪: leaves `keep` random items on and turns the rest off. Coins: 5 in Single, 0 in Doubles; obstacles: 4
   - `- SetUpCameras()` 🧪: Single: `Main Camera`, full screen; Doubles: `Main Camera` on the left half and a runtime copy of it (no `AudioListener`) on the right half
-  - `- PickObstacles()` 📋: leaves 4 random obstacles on and turns the rest off
   - `- Countdown(): IEnumerator` 📋: coroutine. Input off → 3, 2, 1, GO → input on.
   - `- OnFinishLineCrossed(car: CarController, direction: int)`: the first forward crossing in a lap → `FinishLap(winner)`
   - `- OnCheckpointPassed(car, index)` 📋 → `tracker.PassCheckpoint`
@@ -373,15 +371,15 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- Update()`: spins the coin
   - `- OnTriggerEnter(other)`: only a car with `PlayerCarInput` (not the bot) → `SaveService.Data.coins += value`, `Save()`, play the sound, `Collected()`, destroy the coin
 
-`RaceManager.SetUpCoins()` keeps 5 random coins on in Single and turns them all off in Doubles.
+`RaceManager.KeepRandom` keeps 5 random coins on in Single and turns them all off in Doubles.
 
-**`Obstacle` : MonoBehaviour** 📋. On the `Ice`, `Banana`, `Sand` prefabs (trigger, `Obstacle` layer).
+**`Obstacle` : MonoBehaviour** 🧪. On the `Ice`, `Banana`, `Sand` prefabs (trigger, `Obstacle` layer).
 - **Fields:**
-  - `[SF] type: ObstacleType`
-  - `[SF] sound: AudioClip`
+  - `[SF] type: ObstacleType`, `+ Type` (read-only, used by Validate)
+  - `[SF] sound: AudioClip` 📋
 - **Methods:**
-  - `- OnTriggerEnter(other)`: only human cars. Ice → `car.Freeze(1)`; Banana → `car.Spin(1)`; Sand → `car.SetOnSand(true)`. Then it plays the sound, and the car raises `ObstacleHit`. Ice and banana disappear.
-  - `- OnTriggerExit(other)`: Sand → `car.SetOnSand(false)`
+  - `- OnTriggerEnter(other)`: only human cars. Banana → `car.Spin(1)` and disappears; Sand → `car.SetDrift(135)`; Ice → `car.SetDrift(270)`. Later 📋: it plays the sound, and the car raises `ObstacleHit`.
+  - `- OnTriggerExit(other)`: Sand and ice → `car.SetDrift(0)`
 
 #### Audio
 
@@ -525,9 +523,11 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 #### Editor
 
 **`CarRacingMenu` (static, Editor only)** ✅.
-- `+ ValidateOpenScene()`: checks one `RaceManager`, one `FinishLine`, a `BotRoute` with ≥ 2 points and at least 5 coins. Final version 📋 also checks 8 `Checkpoint`s with indexes 0–7 and 12 obstacles on maps with obstacles.
+- `+ ValidateOpenScene()`: checks one `RaceManager`, one `FinishLine`, a `BotRoute` with ≥ 2 points and at least 5 coins. It also checks at least 4 obstacles of the map's `obstacleType` (none on maps without). Final version 📋 also checks 8 `Checkpoint`s with indexes 0–7.
 - `+ OrganizeOpenScene()`
 - `- GroupFor(root): string`
+- `+ PlaceObstacles()`: replaces the scene's obstacles with 12 of the map's type, spread along the `BotRoute` (10–90 % of the way) with a random sideways offset
+- `- FindMapConfig(scene): MapConfig`
 - `+ GenerateBotRoute()`: walks the road from the `Race` start to the finish line, keeping to the middle between the walls and turning before corners, and puts a point every 10 m under a new `BotRoute` object
 - `+ ResetSaveData()`
 
@@ -549,7 +549,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 | `Racer` | association | `CarController` | 1 → 1 |
 | `RaceTracker` | aggregation | `Racer` | 1 → 2 |
 | `Coin` | dependency | `SaveService`, `AudioManager` | |
-| `Obstacle` | dependency (calls `Freeze/Spin/SetOnSand`) | `CarController` | |
+| `Obstacle` | dependency (calls `Spin/SetDrift`) | `CarController` | |
 | `Obstacle`, `MapConfig` | association | `ObstacleType` | |
 | `CarDefinition` | association | car prefab (`GameObject`) | 1 → 1 |
 | `SaveService` | composition | `SaveData` | 1 → 1 |
@@ -591,7 +591,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC9 | Wait for the countdown | Player, Player 2 | | 🧪 |
 | UC10 | Drive the car | Player, Player 2 | «include» bounce off walls | ✅ |
 | UC11 | Collect a coin | Player | «extend» UC10, Single only | 🧪 |
-| UC12 | Hit an obstacle | Player, Player 2 | «extend» UC10, maps with obstacles | 📋 |
+| UC12 | Hit an obstacle | Player, Player 2 | «extend» UC10, maps with obstacles | 🧪 |
 | UC13 | Pass checkpoints and earn race points | Player, Player 2, Bot | | 📋 |
 | UC14 | Win a lap | Player, Player 2, Bot | | 🧪 |
 | UC15 | See the race result and get the prize | Player | | 📋 |
@@ -634,7 +634,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 3. `RaceManager` → `SetUpCameras()` → `AddComponent<CarCamera>().SetTarget(...)` for one or two cameras.
 4. `RaceManager` → `new RaceTracker(racers, 8)`.
 5. `RaceManager` subscribes to `FinishLine.Crossed`, `Checkpoint.Passed`, `Coin.Collected`, and `WallHit` / `ObstacleHit` of every car.
-6. `RaceManager` → `PickObstacles()`.
+6. `RaceManager` → `KeepRandom(obstacles, 4)`.
 7. `RaceManager` → `hud.ShowLap(1, laps)`, `ShowPoints`, `ShowCoins`.
 8. `RaceManager` → `StartCoroutine(Countdown())`.
 
@@ -670,10 +670,9 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 ### 6.10 Hit an obstacle
 1. Human car enters the trigger → `Obstacle.OnTriggerEnter`.
 2. Depending on the type:
-   - **Ice:** `CarController.Freeze(1)`.
    - **Banana:** `CarController.Spin(1)`.
-   - **Sand:** `CarController.SetOnSand(true)`, until `OnTriggerExit` → `SetOnSand(false)`.
-3. `Obstacle` → `AudioManager.PlayEffect(sound)`; ice and banana → `Destroy(obstacle)`.
+   - **Sand / Ice:** `CarController.SetDrift(135 / 270)`, until `OnTriggerExit` → `SetDrift(0)`.
+3. `Obstacle` → `AudioManager.PlayEffect(sound)`; banana → `Destroy(obstacle)`.
 4. `CarController` → `ObstacleHit(car)` → `RaceManager.OnObstacleHit` → `tracker.ObstacleHit(racer)` (−50) → `hud.ShowPoints`.
 
 ### 6.11 Finish a lap
