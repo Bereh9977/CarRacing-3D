@@ -29,6 +29,24 @@ public class CarController : MonoBehaviour
         this.steer = steer;
     }
 
+    // Stops the car on the spot, e.g. right after it crosses the finish line.
+    public void Stop()
+    {
+        speed = 0f;
+        throttle = 0f;
+        steer = 0f;
+        body.linearVelocity = Vector3.zero;
+    }
+
+    // Puts the car back on a spawn point, standing still.
+    public void ResetTo(Transform spawn)
+    {
+        Stop();
+        body.position = spawn.position;
+        body.rotation = spawn.rotation;
+        transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+    }
+
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
