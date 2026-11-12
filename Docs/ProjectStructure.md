@@ -81,13 +81,13 @@ Assets/
 │   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 🧪, RaceTracker 🧪,
 │   │                    RaceHud 📋, PauseMenu 🧪
 │   ├── Pickups/         Coin 🧪, Obstacle 🧪
-│   ├── Audio/           AudioManager 🧪, VolumeSlider 🧪
+│   ├── Audio/           AudioManager 🧪, VolumeSlider 🧪, OptionsPanel 🧪
 │   ├── Data/            MapConfig ✅, CarDefinition ✅, ObstacleType ✅
 │   ├── Core/            SaveData ✅, SaveService ✅
 │   ├── Editor/          CarRacingMenu ✅ (Unity Editor tools, not part of the game)
 │   └── (root)           menu scripts (teammate): GameSession ✅, PanelNavigator ✅, ModeSelector ✅,
 │                        CarSelector ✅, MapSelector ✅, ShopButton 📋, CoinsLabel 🧪,
-│                        RatingPanel 🧪, OptionsPanel 📋
+│                        RatingPanel 🧪
 ├── Data/
 │   ├── Maps/            6 MapConfig assets (one per map)
 │   └── Cars/            5 CarDefinition assets (car1–car5)
@@ -178,7 +178,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `ShopButton` | MonoBehaviour | root (menu) | 📋 | Buy button of a locked car or map |
 | `CoinsLabel` | MonoBehaviour | root (menu) | 🧪 | Shows the player's coins |
 | `RatingPanel` | MonoBehaviour | root (menu) | 🧪 | Rating table and mission text |
-| `OptionsPanel` | MonoBehaviour | root (menu) | 📋 | Music on/off, volume |
+| `OptionsPanel` | MonoBehaviour | Audio | 🧪 | Music On / Off buttons (menu Settings and pause options) |
 | `CarRacingMenu` | static class, Editor only | Editor | ✅ | Tools → Car Racing menu |
 
 ### 4.2 Class details
@@ -341,14 +341,15 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - **Fields:**
   - `[SF] pauseAction: InputActionReference` (`Game/Pause`)
   - `[SF] pausePanel: GameObject` ("Paused" and the Menu button)
-  - `[SF] optionsPanel: GameObject` 📋
+  - `[SF] optionsPanel: GameObject` 🧪 (On / Off, volume, Back)
   - `- paused: bool`
 - **Methods:**
   - `- OnEnable()`: enables the action, hides the panel
   - `- Update()`: Esc → `Pause()` or `Resume()`
   - `+ Pause()`: `Time.timeScale = 0`, shows the panel
   - `+ Resume()`: `Time.timeScale = 1`, hides the panels
-  - `+ OpenOptions()` 📋
+  - `+ OpenOptions()` 🧪: pause panel → options panel
+  - `+ CloseOptions()` 🧪: options panel → pause panel (its Back button)
 
 #### Pickups
 
@@ -386,7 +387,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ PlayEffect(name: string)`: one effects channel, a new effect replaces the playing one (as in pygame)
   - `- AddClickSounds()`: every `Button` in the loaded scene plays `button_sound`
   - `+ SetVolume(volume: float)` 🧪: music volume, saved to `SaveData.musicVolume`
-  - `+ SetMusicOn(on: bool)` 📋: for the Options on/off buttons
+  - `+ SetMusicOn(on: bool)` 🧪: M and the Options buttons; saved to `SaveData.musicOn`
 
 #### Data
 
@@ -417,7 +418,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ purchasedMaps: List<string>`
   - `+ racePoints: int`
   - `+ botRacePoints: int` (5000)
-  - `+ musicOn: bool` (true) 📋
+  - `+ musicOn: bool` (true) 🧪
   - `+ musicVolume: float` (0.5) 🧪
 - **Methods:**
   - `+ OwnsCar(car): bool`
@@ -495,13 +496,10 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - **Methods:**
   - `- OnEnable()`: sorts the player and the Bot (Bot above when equal); shows the mission from `PointsToFirstPlace`
 
-**`OptionsPanel` : MonoBehaviour** 📋. Used in the menu and in the pause menu.
-- **Fields:**
-  - `[SF] volumeSlider: Slider`
+**`OptionsPanel` : MonoBehaviour** 🧪. On the main menu Settings panel and the pause options panel. `AudioManager` isn't in any scene, so the buttons call it through this.
 - **Methods:**
-  - `- OnEnable()`: slider = saved volume
-  - `+ MusicOn()`
-  - `+ MusicOff()`
+  - `+ MusicOn()` → `AudioManager.SetMusicOn(true)`
+  - `+ MusicOff()` → `AudioManager.SetMusicOn(false)`
   - the volume slider has its own small script, `VolumeSlider` 🧪: shows `SaveData.musicVolume` on start and calls `AudioManager.SetVolume` when moved
 
 #### Editor
@@ -541,7 +539,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 | `ModeSelector`, `CarSelector`, `MapSelector` | dependency (write) | `GameSession` | |
 | `CarSelector`, `MapSelector`, `ShopButton`, `CoinsLabel`, `RatingPanel` | dependency | `SaveService` | |
 | `OptionsPanel`, `ShopButton`, `PauseMenu` | dependency | `AudioManager` | |
-| `PauseMenu` | association | `OptionsPanel` | |
+| `PauseMenu` | association | options panel (`OptionsPanel`, `VolumeSlider`) | |
 | `CarRacingMenu` | dependency | `RaceManager`, `FinishLine`, `Coin`, `SaveService`; creates the `BotRoute` object | |
 
 Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `MapConfig` and `CarDefinition` inherit from `ScriptableObject`. There is no inheritance between our own classes. The pygame `Bots(Cars)` inheritance became composition: the bot is a normal car, `BotDriver` drives it, and it has no `PlayerCarInput`.
@@ -567,7 +565,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC4 | Choose map | Player | «extend» UC5 when the map is locked | ✅ / buying 📋 |
 | UC5 | Buy a car or map | Player | | 📋 |
 | UC6 | View rating | Player | | 🧪 |
-| UC7 | Change options (music on/off, volume) | Player | | 📋 |
+| UC7 | Change options (music on/off, volume) | Player | | 🧪 |
 | UC8 | Play a race | Player, Player 2 / Bot | «include» UC9, UC10, UC13, UC14 | 🧪 |
 | UC9 | Wait for the countdown | Player, Player 2 | | 🧪 |
 | UC10 | Drive the car | Player, Player 2 | «include» bounce off walls | ✅ |
@@ -576,7 +574,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC13 | Pass checkpoints and earn race points | Player, Player 2, Bot | | 🧪 |
 | UC14 | Win a lap | Player, Player 2, Bot | | 🧪 |
 | UC15 | See the race result and get the prize | Player | | 📋 |
-| UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 🧪 (Options 📋) |
+| UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 🧪 |
 | UC17 | Return to the main menu | Player | from the result or the pause menu | 🧪 |
 | UC18 | Control music (M on/off, N next track) | Player | anywhere | 🧪 |
 | UC19 | Race against the bot | Bot (drives by itself) | specialization of UC8 | 🧪 |
@@ -679,12 +677,12 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 1. Player presses Esc → `PauseMenu.Update()` → `Pause()` → `Time.timeScale = 0` → shows `pausePanel`.
 2. Then one of:
    - **Resume** (or Esc) → `Resume()` → `Time.timeScale = 1`;
-   - **Options** → `OpenOptions()` → `OptionsPanel` (6.14);
+   - **Options** → `OpenOptions()` → options panel (6.14); its **Back** → `CloseOptions()`;
    - **Menu** → `RaceManager.BackToMenu()` → `Time.timeScale = 1` → `LoadScene("MainMenu")`. The race result is not saved.
 
 ### 6.14 Music and options
-1. Game start → `AudioManager.Create()` → new object + `DontDestroyOnLoad` → music volume from `SaveData.musicVolume` → plays track 1.
-2. Player presses M → music pauses / resumes; N → next track. Anywhere in the game.
+1. Game start → `AudioManager.Create()` → new object + `DontDestroyOnLoad` → volume and on/off from `SaveData` → plays track 1 (paused if music is off).
+2. Player presses M, or clicks **On** / **Off** (`OptionsPanel` → `AudioManager.SetMusicOn`) → music resumes / pauses, saved. N → next track. Anywhere in the game.
 3. Player moves the volume slider → `VolumeSlider` → `AudioManager.SetVolume(v)` → `SaveData.musicVolume = v` → `SaveService.Save()`.
 
 ### 6.15 Editor: organize and validate a map
