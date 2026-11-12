@@ -13,10 +13,13 @@ On a road that isn't a loop, close both ends with fences. The fence prefabs are 
 
 ## Start and finish
 - **Finish:** the `Track_line_type_01_start_finish_15m_free_obs` piece. It contains the `FinishLine` trigger, so nothing extra is needed. Use exactly one per map. Its **blue (Z) arrow must point in the driving direction**, because crossings the other way take a lap away. The piece looks the same both ways round, so rotate it 180° if needed.
-- **Start:** drop one `Assets/Prefabs/Race.prefab` into the map. It holds the spawn point and the race logic. Its **blue arrow points in the driving direction**, and the car spawns facing that way.
+- **Start:** drop one `Assets/Prefabs/Race.prefab` into the map. It holds the player and bot spawn points and the race logic. Its **blue arrow points in the driving direction**, and the cars spawn facing that way.
   - Loop maps: just past the finish line, so the first lap is a full lap.
   - Maps that aren't loops: at the beginning of the road.
-- Don't place cars in the map and don't add a camera script. The race spawns the car and sets up Main Camera.
+- Don't place cars in the map and don't add a camera script. The race spawns the cars and sets up Main Camera.
+
+## Bot route
+The bot drives along the points of a `BotRoute` object. After the road, the finish piece or the `Race` prefab changes, run **Tools → Car Racing → Generate Bot Route**. It replaces the old route. The dots should stay in the middle of the road and end just past the finish line.
 
 ## Organizing a map
 **Tools → Car Racing → Organize Open Scene** puts the top-level objects into `Lighting`, `Environment`, `Track`, `Decorations`, `Coins` and `Obstacles`. Main Camera and `Race` stay at the top. Run it again after adding objects.
