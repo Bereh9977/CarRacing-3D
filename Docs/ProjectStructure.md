@@ -79,7 +79,7 @@ Assets/
 ├── Scripts/
 │   ├── Car/             CarController ✅, PlayerCarInput ✅, CarCamera ✅, BotDriver 🧪
 │   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 🧪, RaceTracker 🧪,
-│   │                    RaceHud 📋, PauseMenu 📋
+│   │                    RaceHud 📋, PauseMenu 🧪
 │   ├── Pickups/         Coin 🧪, Obstacle 🧪
 │   ├── Audio/           AudioManager 📋
 │   ├── Data/            MapConfig ✅, CarDefinition ✅, ObstacleType ✅
@@ -160,7 +160,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `RaceTracker` | plain C# class | Race | 🧪 | Counts race points; builds the 8 checkpoints from the `BotRoute` |
 | `FinishLine` | MonoBehaviour | Race | 🧪 | Detects crossings of the finish line |
 | `RaceHud` | MonoBehaviour | Race | 📋 | All texts and panels during the race |
-| `PauseMenu` | MonoBehaviour | Race | 📋 | Esc pause: Resume, Options, Menu |
+| `PauseMenu` | MonoBehaviour | Race | 🧪 | Esc pause: Resume, Options, Menu |
 | `Coin` | MonoBehaviour | Pickups | 🧪 | +100 coins on pickup |
 | `Obstacle` | MonoBehaviour | Pickups | 🧪 | Ice / banana / sand effect |
 | `AudioManager` | MonoBehaviour, one per game | Audio | 📋 | Music playlist and sound effects |
@@ -281,7 +281,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- FinishRace()` 📋: `tracker.FinishRace`, decides the result, `GiveRewards()`, `hud.ShowResult`
   - `- GiveRewards(result)` 📋: Single only: prize coins, `SaveData.AddRaceResult`, `SaveService.Save()`
   - `- SetRacersInput(enabled: bool)` 📋
-  - `+ BackToMenu()`: loads `MainMenu`
+  - `+ BackToMenu()`: `Time.timeScale = 1` (in case of pause), loads `MainMenu`; used by the Menu buttons on the result and pause panels
   - `- FindMap(sceneName): MapConfig`
   - `- FindCar(id): CarDefinition`
 
@@ -338,17 +338,18 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ ShowCountdown(step)`: shows picture `step` (3, 2, 1, GO), or hides it
   - `+ ShowResult(title, lines: string[])`: "You win!" / "Bot wins!" / "Car 1 wins!" / "It's a tie!" + points per racer
 
-**`PauseMenu` : MonoBehaviour** 📋. On the `Race` prefab.
+**`PauseMenu` : MonoBehaviour** 🧪. On the `Race` prefab. Turned off by `RaceManager` when the race ends.
 - **Fields:**
   - `[SF] pauseAction: InputActionReference` (`Game/Pause`)
-  - `[SF] pausePanel, optionsPanel: GameObject`
+  - `[SF] pausePanel: GameObject` ("Paused" and the Menu button)
+  - `[SF] optionsPanel: GameObject` 📋
   - `- paused: bool`
 - **Methods:**
+  - `- OnEnable()`: enables the action, hides the panel
   - `- Update()`: Esc → `Pause()` or `Resume()`
   - `+ Pause()`: `Time.timeScale = 0`, shows the panel
   - `+ Resume()`: `Time.timeScale = 1`, hides the panels
-  - `+ OpenOptions()`
-  - `+ ToMenu()`: `Time.timeScale = 1`, loads `MainMenu`
+  - `+ OpenOptions()` 📋
 
 #### Pickups
 
@@ -578,7 +579,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC13 | Pass checkpoints and earn race points | Player, Player 2, Bot | | 🧪 |
 | UC14 | Win a lap | Player, Player 2, Bot | | 🧪 |
 | UC15 | See the race result and get the prize | Player | | 📋 |
-| UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 📋 |
+| UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 🧪 (Options 📋) |
 | UC17 | Return to the main menu | Player | from the result or the pause menu | 🧪 |
 | UC18 | Control music (M on/off, N next track) | Player | anywhere | 📋 |
 | UC19 | Race against the bot | Bot (drives by itself) | specialization of UC8 | 🧪 |
@@ -682,7 +683,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 2. Then one of:
    - **Resume** (or Esc) → `Resume()` → `Time.timeScale = 1`;
    - **Options** → `OpenOptions()` → `OptionsPanel` (6.14);
-   - **Menu** → `ToMenu()` → `Time.timeScale = 1` → `LoadScene("MainMenu")`. The race result is not saved.
+   - **Menu** → `RaceManager.BackToMenu()` → `Time.timeScale = 1` → `LoadScene("MainMenu")`. The race result is not saved.
 
 ### 6.14 Music and options
 1. Game start → `AudioManager.CreateOnStart()` → instantiates the prefab → `DontDestroyOnLoad` → reads `musicOn` and `musicVolume` from `SaveData` → plays track 1.
