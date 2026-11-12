@@ -138,7 +138,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 |---|---|
 | Car (`Mini_Cooper`, `Subaruu_Impreeza`, `Porschee_959_Paris_Dakar`, `Lanncia_Stratoss`, `Toyotta_Celicca`) | Rigidbody, CapsuleCollider, **CarController**, **PlayerCarInput** |
 | Bot car (made at runtime from a car prefab) | as above, but `PlayerCarInput` is switched off and **BotDriver** is added |
-| `Race` | **RaceManager**, **PauseMenu**; children `Spawn1`, `Spawn2`, `Canvas` (**RaceHud**: lap, points, coins, countdown, message, result panel, pause panel), `EventSystem`, `Camera2` (Doubles only) |
+| `Race` | **RaceManager**, **PauseMenu**; children `PlayerSpawn` (car 1), `BotSpawn` (car 2), `Canvas` (**RaceHud**: lap, points, coins, countdown, message, result panel, pause panel), `EventSystem`. In Doubles a copy of `Main Camera` is made at runtime for the right half |
 | `Coin`, `StarCoin` | trigger collider, **Coin** |
 | `Ice`, `Banana`, `Sand` | trigger collider on the `Obstacle` layer, **Obstacle** |
 | `AudioManager` | 2 AudioSources (music, effects), **AudioManager** |
@@ -153,7 +153,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | Class | Kind | Folder | Status | Purpose |
 |---|---|---|---|---|
 | `CarController` | MonoBehaviour | Car | ✅ (obstacle effects, reset and events 📋) | Moves a car; the same class for player and bot cars |
-| `PlayerCarInput` | MonoBehaviour | Car | ✅ (`SetActions` 📋) | Keyboard → `CarController` |
+| `PlayerCarInput` | MonoBehaviour | Car | ✅ (`SetActions` 🧪) | Keyboard → `CarController` |
 | `BotDriver` | MonoBehaviour | Car | 🧪 | Route points → `CarController` |
 | `CarCamera` | MonoBehaviour | Car | ✅ | Follows a car |
 | `RaceManager` | MonoBehaviour | Race | 🧪 (the full version is 📋) | Runs the race: spawn, countdown, laps, result, rewards |
@@ -225,7 +225,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `[SF] throttle, steer: InputActionReference` (Player1 by default)
   - `- car: CarController`
 - **Methods:**
-  - `+ SetActions(throttle, steer: InputActionReference)` 📋: Player 2 gets the Player2 actions
+  - `+ SetActions(throttle, steer: InputActionReference)` 🧪: Player 2 gets the Player2 actions
   - `- Awake()`
   - `- OnEnable()`
   - `- Update()`: `car.SetInput(...)`
@@ -257,10 +257,9 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - **Fields:**
   - `[SF] maps: MapConfig[]`
   - `[SF] cars: CarDefinition[]`
-  - `[SF] spawn1, spawn2: Transform`: the player / Player 1 spawn, and the bot / Player 2 spawn
+  - `[SF] car1Spawn, car2Spawn: Transform`: the player / Player 1 spawn, and the bot / Player 2 spawn
   - `[SF] hud: RaceHud`
-  - `[SF] camera2: Camera` 📋 (Doubles)
-  - `[SF] player2Throttle, player2Steer: InputActionReference` 📋
+  - `[SF] player2Throttle, player2Steer: InputActionReference` 🧪
   - `[SF] countdownClip, lapWonClip, winClip, tieClip: AudioClip` 📋
   - `- map: MapConfig`
   - `- racers: List<Racer>` 📋
@@ -269,9 +268,9 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- raceOver: bool` 📋
 - **Methods:**
   - `- Start()`: finds the map, spawns the racers, sets up the cameras, subscribes to the events, picks the obstacles, starts the first countdown
-  - `- SpawnRacers()` 📋: Single: player + bot; Doubles: car1 (WASD) + car2 (arrows)
+  - `- SpawnRacers()` 📋: Single: player + bot; Doubles: car1 (WASD) + car2 (arrows), both with `carMaxSpeed`
   - `- SpawnCar(definition, spawn, maxSpeed): CarController` 📋
-  - `- SetUpCameras()` 📋: Single: `Main Camera`, full screen; Doubles: `Main Camera` on the left half, `camera2` on the right half
+  - `- SetUpCameras()` 🧪: Single: `Main Camera`, full screen; Doubles: `Main Camera` on the left half and a runtime copy of it (no `AudioListener`) on the right half
   - `- PickObstacles()` 📋: leaves 4 random obstacles on and turns the rest off
   - `- Countdown(): IEnumerator` 📋: coroutine. Input off → 3, 2, 1, GO → input on.
   - `- OnFinishLineCrossed(car: CarController, direction: int)`: the first forward crossing in a lap → `FinishLap(winner)`
@@ -584,7 +583,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC6 | View rating | Player | | 📋 |
 | UC7 | Change options (music on/off, volume) | Player | | 📋 |
 | UC8 | Play a race | Player, Player 2 / Bot | «include» UC9, UC10, UC13, UC14 | 🧪 |
-| UC9 | Wait for the countdown | Player, Player 2 | | 📋 |
+| UC9 | Wait for the countdown | Player, Player 2 | | 🧪 |
 | UC10 | Drive the car | Player, Player 2 | «include» bounce off walls | ✅ |
 | UC11 | Collect a coin | Player | «extend» UC10, Single only | 📋 |
 | UC12 | Hit an obstacle | Player, Player 2 | «extend» UC10, maps with obstacles | 📋 |

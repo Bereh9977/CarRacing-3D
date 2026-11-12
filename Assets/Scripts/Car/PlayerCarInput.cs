@@ -10,6 +10,15 @@ public class PlayerCarInput : MonoBehaviour
 
     private CarController car;
 
+    // Player 2 in Doubles gets the Player2 actions (arrows).
+    public void SetActions(InputActionReference throttle, InputActionReference steer)
+    {
+        this.throttle = throttle;
+        this.steer = steer;
+        throttle.action.Enable();
+        steer.action.Enable();
+    }
+
     private void Awake()
     {
         car = GetComponent<CarController>();

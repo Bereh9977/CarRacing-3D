@@ -2,18 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-// Runs the race in a map scene, with the pygame rules: the player races the bot, the first car over
-// the finish line wins the lap, then both cars go back to the start and a 3-2-1-GO countdown starts the next lap.
-// After the last lap the car with more lap wins wins the race. Lives on the Race prefab, which also holds the spawn points.
+// Runs the race in a map scene, with the pygame rules. Single: the player races the bot. Doubles: two players
+// on one keyboard (WASD and arrows) with a split screen. The first car over the finish line wins the lap, then
+// both cars go back to the start and a 3-2-1-GO countdown starts the next lap. After the last lap the car with
+// more lap wins wins the race. Lives on the Race prefab, which also holds the spawn points.
 public class RaceManager : MonoBehaviour
 {
     [SerializeField] private MapConfig[] maps;
     [SerializeField] private CarDefinition[] cars;
-    [SerializeField] private Transform playerSpawn;
-    [SerializeField] private Transform botSpawn;
+    [FormerlySerializedAs("playerSpawn")] [SerializeField] private Transform car1Spawn;
+    [FormerlySerializedAs("botSpawn")] [SerializeField] private Transform car2Spawn;
+    [SerializeField] private InputActionReference player2Throttle;
+    [SerializeField] private InputActionReference player2Steer;
     [SerializeField] private TMP_Text lapText;
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Image countdownImage;
@@ -25,12 +30,14 @@ public class RaceManager : MonoBehaviour
     private const int TiePrize = 100;
 
     private MapConfig map;
-    private CarController playerCar;
-    private CarController botCar;
-    private CarCamera carCamera;
+    private bool doubles;
+    private CarController car1; // the player in Single
+    private CarController car2; // the bot in Single
+    private CarCamera camera1;
+    private CarCamera camera2; // Doubles only
     private bool racing;
-    private int playerWins;
-    private int botWins;
+    private int car1Wins;
+    private int car2Wins;
 
     // Crossing the line backwards has to be undone by crossing it forwards before a crossing counts.
     private readonly Dictionary<CarController, int> backwardCrossings = new Dictionary<CarController, int>();
@@ -38,14 +45,23 @@ public class RaceManager : MonoBehaviour
     private void Start()
     {
         map = FindMap(SceneManager.GetActiveScene().name);
+        doubles = GameSession.Mode == GameMode.Doubles;
 
-        playerCar = SpawnCar(FindCar(GameSession.CarId), playerSpawn, map.carMaxSpeed);
-        botCar = SpawnCar(cars[Random.Range(0, cars.Length)], botSpawn, map.botMaxSpeed);
-        Destroy(botCar.GetComponent<PlayerCarInput>());
-        botCar.gameObject.AddComponent<BotDriver>().SetRoute(GameObject.Find("BotRoute").transform);
-
-        carCamera = Camera.main.gameObject.AddComponent<CarCamera>();
-        carCamera.SetTarget(playerCar.transform);
+        if (doubles)
+        {
+            // As in pygame: car1 on WASD and car2 on the arrows, both with the player top speed.
+            car1 = SpawnCar(FindCar("car1"), car1Spawn, map.carMaxSpeed);
+            car2 = SpawnCar(FindCar("car2"), car2Spawn, map.carMaxSpeed);
+            car2.GetComponent<PlayerCarInput>().SetActions(player2Throttle, player2Steer);
+        }
+        else
+        {
+            car1 = SpawnCar(FindCar(GameSession.CarId), car1Spawn, map.carMaxSpeed);
+            car2 = SpawnCar(cars[Random.Range(0, cars.Length)], car2Spawn, map.botMaxSpeed);
+            Destroy(car2.GetComponent<PlayerCarInput>());
+            car2.gameObject.AddComponent<BotDriver>().SetRoute(GameObject.Find("BotRoute").transform);
+        }
+        SetUpCameras();
 
         FindFirstObjectByType<FinishLine>().Crossed += OnFinishLineCrossed;
         finishPanel.SetActive(false);
@@ -59,6 +75,25 @@ public class RaceManager : MonoBehaviour
         car.SetMaxSpeed(maxSpeed);
         backwardCrossings[car] = 0;
         return car;
+    }
+
+    // Single: Main Camera follows the player on the full screen.
+    // Doubles: Main Camera follows car 1 on the left half and a copy of it follows car 2 on the right half.
+    private void SetUpCameras()
+    {
+        Camera main = Camera.main;
+        if (doubles)
+        {
+            Camera second = Instantiate(main);
+            second.tag = "Untagged";
+            Destroy(second.GetComponent<AudioListener>()); // a scene can have only one
+            main.rect = new Rect(0f, 0f, 0.5f, 1f);
+            second.rect = new Rect(0.5f, 0f, 0.5f, 1f);
+            camera2 = second.gameObject.AddComponent<CarCamera>();
+            camera2.SetTarget(car2.transform);
+        }
+        camera1 = main.gameObject.AddComponent<CarCamera>();
+        camera1.SetTarget(car1.transform);
     }
 
     private void OnFinishLineCrossed(CarController car, int direction)
@@ -76,15 +111,15 @@ public class RaceManager : MonoBehaviour
             return;
         }
 
-        if (car == playerCar) playerWins++;
-        else botWins++;
+        if (car == car1) car1Wins++;
+        else car2Wins++;
         StartCoroutine(EndLap());
     }
 
     private IEnumerator EndLap()
     {
         SetCarsDriving(false);
-        int lapsDone = playerWins + botWins;
+        int lapsDone = car1Wins + car2Wins;
         if (lapsDone >= map.requiredLaps)
         {
             Finish();
@@ -95,12 +130,14 @@ public class RaceManager : MonoBehaviour
         messageText.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
 
-        playerCar.ResetTo(playerSpawn);
-        botCar.ResetTo(botSpawn);
-        botCar.GetComponent<BotDriver>().ResetRoute();
-        backwardCrossings[playerCar] = 0;
-        backwardCrossings[botCar] = 0;
-        carCamera.SetTarget(playerCar.transform); // jump behind the car instead of flying back
+        car1.ResetTo(car1Spawn);
+        car2.ResetTo(car2Spawn);
+        if (!doubles) car2.GetComponent<BotDriver>().ResetRoute();
+        backwardCrossings[car1] = 0;
+        backwardCrossings[car2] = 0;
+        // jump behind the cars instead of flying back
+        camera1.SetTarget(car1.transform);
+        if (doubles) camera2.SetTarget(car2.transform);
         ShowLap();
         yield return Countdown();
     }
@@ -123,32 +160,34 @@ public class RaceManager : MonoBehaviour
     private void SetCarsDriving(bool driving)
     {
         racing = driving;
-        playerCar.GetComponent<PlayerCarInput>().enabled = driving;
-        botCar.GetComponent<BotDriver>().enabled = driving;
+        car1.GetComponent<PlayerCarInput>().enabled = driving;
+        if (doubles)
+            car2.GetComponent<PlayerCarInput>().enabled = driving;
+        else
+            car2.GetComponent<BotDriver>().enabled = driving;
+
         if (!driving)
         {
-            playerCar.Stop(); // a full stop, so a car past the finish doesn't roll into the fences
-            botCar.Stop();
+            car1.Stop(); // a full stop, so a car past the finish doesn't roll into the fences
+            car2.Stop();
         }
     }
 
     private void Finish()
     {
-        if (playerWins > botWins)
-        {
-            resultText.text = "You win!";
-            SaveService.Data.coins += WinPrize;
-        }
-        else if (playerWins < botWins)
-        {
-            resultText.text = "Bot wins!";
-        }
+        if (car1Wins > car2Wins)
+            resultText.text = doubles ? "Car 1 wins!" : "You win!";
+        else if (car1Wins < car2Wins)
+            resultText.text = doubles ? "Car 2 wins!" : "Bot wins!";
         else
-        {
             resultText.text = "It's a tie!";
-            SaveService.Data.coins += TiePrize;
+
+        // Prize coins are for Single only, as in pygame.
+        if (!doubles && car1Wins >= car2Wins)
+        {
+            SaveService.Data.coins += car1Wins > car2Wins ? WinPrize : TiePrize;
+            SaveService.Save();
         }
-        SaveService.Save();
 
         lapText.gameObject.SetActive(false);
         messageText.gameObject.SetActive(false);
@@ -157,7 +196,7 @@ public class RaceManager : MonoBehaviour
 
     private void ShowLap()
     {
-        lapText.text = $"Lap {playerWins + botWins + 1}/{map.requiredLaps}";
+        lapText.text = $"Lap {car1Wins + car2Wins + 1}/{map.requiredLaps}";
     }
 
     // Called by the button on the finish panel.

@@ -61,8 +61,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 96db605739af044b0a9df5863bb9d9bd, type: 2}
   - {fileID: 11400000, guid: e65747f1061ad4fafb14f0e8e5de0797, type: 2}
   - {fileID: 11400000, guid: c109a3e65b7bc4fb9928dbf53ac482a6, type: 2}
-  playerSpawn: {fileID: 2211979851275873568}
-  botSpawn: {fileID: 2186647536693898542}
+  car1Spawn: {fileID: 2211979851275873568}
+  car2Spawn: {fileID: 2186647536693898542}
+  player2Throttle: {fileID: -8735494480401735207, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  player2Steer: {fileID: 4567527487657092181, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   lapText: {fileID: 624419315857518238}
   messageText: {fileID: 4996915569622974599}
   countdownImage: {fileID: 2697432600947987087}
