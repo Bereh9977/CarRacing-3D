@@ -15,6 +15,8 @@ public static class CarRacingMenu
         if (finishLines != 1) problems.Add($"Needs exactly one start/finish road piece, found {finishLines}.");
         GameObject route = GameObject.Find("BotRoute");
         if (route == null || route.transform.childCount < 2) problems.Add("Needs a BotRoute with points (Tools → Car Racing → Generate Bot Route).");
+        int coins = Object.FindObjectsByType<Coin>().Length;
+        if (coins < 5) problems.Add($"Needs at least 5 coins (the race shows 5 random ones), found {coins}.");
         string scene = EditorSceneManager.GetActiveScene().name;
 
         if (problems.Count == 0)
