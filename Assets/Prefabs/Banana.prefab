@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 5880243570458409603}
   - component: {fileID: 724560603420946085}
   - component: {fileID: 3326710918418548752}
-  m_Layer: 0
+  - component: {fileID: 4315108176829904680}
+  m_Layer: 12
   m_Name: Banana
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8584,10 +8585,23 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &4315108176829904680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2716625139004683654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 293015db9e5c444ef819d5155c5f8fc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Obstacle
+  type: 2
