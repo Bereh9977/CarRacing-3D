@@ -18,6 +18,9 @@ On a road that isn't a loop, close both ends with fences. The fence prefabs are 
   - Maps that aren't loops: at the beginning of the road.
 - Don't place cars in the map and don't add a camera script. The race spawns the cars and sets up Main Camera.
 
+## Coins
+Place **at least 5** `Coin` or `StarCoin` prefabs (`Assets/BTM_Assets/BTM_Items_Gems/Prefabs`) on the road, about 1.3 m above it so cars drive through them. Each race shows 5 random ones, so more spots make races less alike. Doubles has no coins.
+
 ## Bot route
 The bot drives along the points of a `BotRoute` object. After the road, the finish piece or the `Race` prefab changes, run **Tools → Car Racing → Generate Bot Route**. It replaces the old route. The dots should stay in the middle of the road and end just past the finish line.
 
