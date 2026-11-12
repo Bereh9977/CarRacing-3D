@@ -227,6 +227,7 @@ public class RaceManager : MonoBehaviour
 
     private void Finish()
     {
+        GetComponent<PauseMenu>().enabled = false; // no pausing over the result
         tracker.FinishRace(map.requiredLaps);
         int car1Wins = racer1.lapsWon;
         int car2Wins = racer2.lapsWon;
@@ -269,9 +270,10 @@ public class RaceManager : MonoBehaviour
         lapText.text = $"Lap {racer1.lapsWon + racer2.lapsWon + 1}/{map.requiredLaps}";
     }
 
-    // Called by the button on the finish panel.
+    // Called by the Menu buttons on the finish and pause panels.
     public void BackToMenu()
     {
+        Time.timeScale = 1f; // the pause menu stops time; otherwise the main menu would stay frozen
         SceneManager.LoadScene("MainMenu");
     }
 
