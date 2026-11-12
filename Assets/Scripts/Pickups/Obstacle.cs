@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // An obstacle on the road, ported from pygame. Only cars driven by people are affected, not the bot.
@@ -11,12 +12,15 @@ public class Obstacle : MonoBehaviour
     private const float SandDrift = 135f; // degrees per second, a bit more than steering
     private const float IceDrift = 270f;
 
+    public static event Action<CarController> Hit;
+
     public ObstacleType Type => type;
 
     private void OnTriggerEnter(Collider other)
     {
         CarController car = HumanCar(other);
         if (car == null) return;
+        Hit?.Invoke(car);
 
         if (type == ObstacleType.BananaPeel)
         {
