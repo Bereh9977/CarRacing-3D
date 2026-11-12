@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: car5
   m_EditorClassIdentifier: Assembly-CSharp::CarDefinition
   id: car5
-  isFree: 1
+  isFree: 0
   price: 3000
   prefab: {fileID: 2344503893661938900, guid: b58f6b082a6604b079ee86b7bc3c98be, type: 3}

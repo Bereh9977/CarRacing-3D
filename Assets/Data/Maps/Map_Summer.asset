@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Map_Summer
   m_EditorClassIdentifier: Assembly-CSharp::MapConfig
   sceneName: Map_Summer
-  isFree: 0
+  isFree: 1
   price: 5000
   requiredLaps: 1
   obstacleType: 2
