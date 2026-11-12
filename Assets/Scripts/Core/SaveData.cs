@@ -10,6 +10,7 @@ public class SaveData
     public List<string> purchasedMaps = new List<string>();
     public int racePoints;
     public int botRacePoints = 5000;
+    public bool musicOn = true;
     public float musicVolume = 0.5f; // 0..1, as in pygame
 
     public bool OwnsCar(CarDefinition car) => car.isFree || purchasedCars.Contains(car.id);

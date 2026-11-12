@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 // Music and sound effects for the whole game, ported from the pygame music.py. It creates itself when the game
 // starts and stays between scenes, so no scene needs it. Clips are loaded by name from Resources/Audio.
-// Music: track1..track14 in a loop at the saved volume; M turns it on/off, N skips to the next track.
+// Music: track1..track14 in a loop at the saved volume; M or the Options buttons turn it on/off (saved), N skips to the next track.
 // Effects: one channel, so a new effect replaces the one playing, as in pygame. Every UI button clicks.
 public class AudioManager : MonoBehaviour
 {
@@ -16,7 +16,7 @@ public class AudioManager : MonoBehaviour
     private AudioSource music;
     private AudioSource effects;
     private int currentTrack;
-    private bool musicOn = true;
+    private bool musicOn;
     private InputAction toggleMusic;
     private InputAction nextTrack;
 
@@ -41,17 +41,15 @@ public class AudioManager : MonoBehaviour
         nextTrack.Enable();
 
         SceneManager.sceneLoaded += (scene, mode) => AddClickSounds();
+        musicOn = SaveService.Data.musicOn;
         PlayTrack(0);
+        if (!musicOn) music.Pause();
     }
 
     private void Update()
     {
         if (toggleMusic.WasPressedThisFrame())
-        {
-            musicOn = !musicOn;
-            if (musicOn) music.UnPause();
-            else music.Pause();
-        }
+            SetMusicOn(!musicOn);
 
         if (!musicOn) return;
         if (nextTrack.WasPressedThisFrame() || !music.isPlaying)
@@ -65,6 +63,16 @@ public class AudioManager : MonoBehaviour
         music.clip = Resources.Load<AudioClip>($"Audio/Music/track{index + 1}");
         music.Play();
         if (old != null) Resources.UnloadAsset(old); // keep only the playing track in memory
+    }
+
+    // M and the Options buttons. Saved, so the music stays off the next time the game starts.
+    public void SetMusicOn(bool on)
+    {
+        musicOn = on;
+        if (on) music.UnPause();
+        else music.Pause();
+        SaveService.Data.musicOn = on;
+        SaveService.Save();
     }
 
     // Called by the volume slider in the options. The volume is saved, so it stays the next time the game starts.
