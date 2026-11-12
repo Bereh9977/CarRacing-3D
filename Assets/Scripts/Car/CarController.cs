@@ -10,12 +10,19 @@ public class CarController : MonoBehaviour
     [SerializeField] private float coastDeceleration = 8f;  // m/s², slowing down with no key pressed
     [SerializeField] private float turnSpeed = 120f;        // degrees per second
     [SerializeField] private float bounceFactor = 0.65f;    // share of speed kept, reversed, after hitting a wall
+    [SerializeField] private float spinSpeed = 720f;        // degrees per second on a banana
 
     private Rigidbody body;
     private int wallLayer;
     private float speed;
     private float throttle;
     private float steer;
+
+    // Obstacle effects, ported from pygame. While spinning the car stands still and keeps its speed for later.
+    private float spinningUntil;
+    private float drift;            // degrees per second, 0 when not on sand or ice
+    private float driftDirection;   // -1 or 1
+    private float driftChangeTime;  // when the drift picks a new direction
 
     public void SetMaxSpeed(float value)
     {
@@ -29,12 +36,27 @@ public class CarController : MonoBehaviour
         this.steer = steer;
     }
 
-    // Stops the car on the spot, e.g. right after it crosses the finish line.
+    // Banana.
+    public void Spin(float seconds)
+    {
+        spinningUntil = Time.time + seconds;
+    }
+
+    // Sand and ice: while on them, the car turns by itself to the left or right at `degreesPerSecond`,
+    // picking a new random side every 1.5 s. 0 ends the drift.
+    public void SetDrift(float degreesPerSecond)
+    {
+        drift = degreesPerSecond;
+    }
+
+    // Stops the car on the spot, e.g. right after it crosses the finish line. Also ends any obstacle effect.
     public void Stop()
     {
         speed = 0f;
         throttle = 0f;
         steer = 0f;
+        spinningUntil = 0f;
+        drift = 0f;
         body.linearVelocity = Vector3.zero;
     }
 
@@ -59,6 +81,14 @@ public class CarController : MonoBehaviour
     private void FixedUpdate()
     {
         float dt = Time.fixedDeltaTime;
+        float gravity = Mathf.Min(body.linearVelocity.y, 0f); // keep gravity, but bumps and walls can't launch the car
+
+        if (Time.time < spinningUntil)
+        {
+            body.MoveRotation(body.rotation * Quaternion.Euler(0f, spinSpeed * dt, 0f));
+            body.linearVelocity = new Vector3(0f, gravity, 0f);
+            return;
+        }
 
         if (throttle > 0f)
             speed = Mathf.Min(speed + acceleration * dt, maxSpeed);
@@ -72,10 +102,21 @@ public class CarController : MonoBehaviour
         // It fades out below 5 m/s, so the car doesn't spin on the spot.
         float direction = throttle != 0f ? Mathf.Sign(throttle) : Mathf.Sign(speed);
         float turnFactor = direction * Mathf.Min(Mathf.Abs(speed) / 5f, 1f);
-        body.MoveRotation(body.rotation * Quaternion.Euler(0f, steer * turnFactor * turnSpeed * dt, 0f));
+        float turn = steer * turnFactor * turnSpeed;
+
+        if (drift > 0f)
+        {
+            if (Time.time >= driftChangeTime)
+            {
+                driftDirection = Random.value < 0.5f ? -1f : 1f;
+                driftChangeTime = Time.time + 1.5f;
+            }
+            turn += driftDirection * drift;
+        }
+        body.MoveRotation(body.rotation * Quaternion.Euler(0f, turn * dt, 0f));
 
         Vector3 velocity = body.rotation * Vector3.forward * speed;
-        velocity.y = Mathf.Min(body.linearVelocity.y, 0f); // keep gravity, but bumps and walls can't launch the car
+        velocity.y = gravity;
         body.linearVelocity = velocity;
     }
 
