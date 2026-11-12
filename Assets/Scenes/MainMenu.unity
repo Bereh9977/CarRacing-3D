@@ -5700,6 +5700,7 @@ GameObject:
   m_Component:
   - component: {fileID: 910108378}
   - component: {fileID: 910108379}
+  - component: {fileID: 910108380}
   m_Layer: 5
   m_Name: Slider
   m_TagString: Untagged
@@ -5780,6 +5781,18 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &910108380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910108377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4dd4a8a7778a4bc188db3e1d635e424, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VolumeSlider
 --- !u!1 &922901948
 GameObject:
   m_ObjectHideFlags: 0
