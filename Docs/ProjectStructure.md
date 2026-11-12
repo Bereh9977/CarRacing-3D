@@ -57,7 +57,7 @@ Two rows, the player and the Bot. The Bot starts with **5000** race points, so i
 - "Mission complete! You beat Bot!"
 
 ### 1.5 Shop
-Cars and maps can be locked. A locked item shows its price: cars **3000**, maps **5000** coins. Buying takes the coins and unlocks the item forever.
+Cars and maps can be locked. Free from the start: **car1** (Mini Cooper) and **Map_Summer** (Evergreen Escape); everything else is locked (this follows the menu layout, not pygame). A locked item shows a lock and its price: cars **3000**, maps **5000** coins. Buying takes the coins and unlocks the item forever.
 
 ### 1.6 Keys
 | Key | Action | Input action |
@@ -86,7 +86,7 @@ Assets/
 │   ├── Core/            SaveData ✅, SaveService ✅
 │   ├── Editor/          CarRacingMenu ✅ (Unity Editor tools, not part of the game)
 │   └── (root)           menu scripts (teammate): GameSession ✅, PanelNavigator ✅, ModeSelector ✅,
-│                        CarSelector ✅, MapSelector ✅, ShopButton 📋, CoinsLabel 🧪,
+│                        CarSelector ✅, MapSelector ✅, ShopButton 🧪, CoinsLabel 🧪,
 │                        RatingPanel 🧪
 ├── Data/
 │   ├── Maps/            6 MapConfig assets (one per map)
@@ -114,8 +114,8 @@ Docs/                    SceneContract.md (rules for map scenes), this file
 |---|---|---|
 | Main | Start, Rating, Options buttons; coins label 📋 | Mode, Rating, Options |
 | Mode | Single, Doubles | Single → Cars, Doubles → Maps |
-| Cars | 5 cars; locked ones have a buy button 📋 | Maps |
-| Maps | 6 maps; locked ones have a buy button 📋 | loads the map scene |
+| Cars | 5 cars; locked ones have a lock and a price button 🧪 | Maps |
+| Maps | 6 maps; locked ones have a lock and a price button 🧪 | loads the map scene |
 | Rating 📋 | Player and Bot rows, mission text | back |
 | Options 📋 | Music on / off, volume slider, key list | back |
 
@@ -175,7 +175,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `ModeSelector` | MonoBehaviour | root (menu) | ✅ | Mode buttons |
 | `CarSelector` | MonoBehaviour | root (menu) | ✅ | Car buttons |
 | `MapSelector` | MonoBehaviour | root (menu) | ✅ | Map buttons, loads the scene |
-| `ShopButton` | MonoBehaviour | root (menu) | 📋 | Buy button of a locked car or map |
+| `ShopButton` | MonoBehaviour | root (menu) | 🧪 | Buy button of a locked car or map |
 | `CoinsLabel` | MonoBehaviour | root (menu) | 🧪 | Shows the player's coins |
 | `RatingPanel` | MonoBehaviour | root (menu) | 🧪 | Rating table and mission text |
 | `OptionsPanel` | MonoBehaviour | Audio | 🧪 | Music On / Off buttons (menu Settings and pause options) |
@@ -381,11 +381,12 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- currentTrack: int`, `- musicOn: bool`
 - **Methods:**
   - `- static Create()` (`[RuntimeInitializeOnLoadMethod]`)
-  - `- Awake()`: sources, actions, click sounds on every scene load, plays track 1
+  - `- Awake()`: sources, actions, subscribes `OnSceneLoaded`, plays track 1
   - `- Update()`: M → music on/off (pause/unpause); N or the end of a track → next track
   - `- PlayTrack(index)`: loads the track, unloads the previous one
   - `+ PlayEffect(name: string)`: one effects channel, a new effect replaces the playing one (as in pygame)
-  - `- AddClickSounds()`: every `Button` in the loaded scene plays `button_sound`
+  - `- OnSceneLoaded(scene, mode)`: every `Button` in the loaded scene plays `button_sound`
+  - `- OnDestroy()`: unsubscribes from the static `SceneManager.sceneLoaded` (no domain reload on Play)
   - `+ SetVolume(volume: float)` 🧪: music volume, saved to `SaveData.musicVolume`
   - `+ SetMusicOn(on: bool)` 🧪: M and the Options buttons; saved to `SaveData.musicOn`
 
@@ -433,6 +434,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - `- data: SaveData`
 - `- FilePath: string`
 - `+ Data: SaveData` (loads on first use)
+- `- ForgetOnPlay()` (`[RuntimeInitializeOnLoadMethod]`): clears `data` when Play starts, because the project has no domain reload on Play and statics would keep the old data
 - `+ Save()`
 - `+ ResetProgress()`
 
@@ -474,15 +476,16 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - **Methods:**
   - `+ SelectMap(mapId)`: final version: only works if the map is owned 📋
 
-**`ShopButton` : MonoBehaviour** 📋. On every car/map card. Shows the price on a locked item and hides itself on an owned one.
+**`ShopButton` : MonoBehaviour** 🧪. On the price button (3000 / 5000 picture) under a car or map picture. While the item is locked, the lock picture shows and the item's select button can't be clicked; once owned, the lock and the price button are hidden.
 - **Fields:**
   - `[SF] car: CarDefinition` or `[SF] map: MapConfig` (one is set)
-  - `[SF] priceText: TMP_Text`
-  - `[SF] purchaseSound: AudioClip`
+  - `[SF] selectButton: Button`: the button that picks the item
+  - `[SF] lockImage: GameObject`: the lock picture over the item
 - **Methods:**
+  - `- Awake()`: its own button's click → `Buy()`
   - `- OnEnable()` → `Refresh()`
-  - `+ Buy()`: `SaveService.Data.TryBuyCar/TryBuyMap` → `Save()` → sound → `Refresh()`
-  - `- Refresh()`
+  - `- Buy()`: `SaveService.Data.TryBuyCar/TryBuyMap` → if bought: `Save()` → `PlayEffect("purchase")` → `Refresh()`. Not enough coins: nothing happens
+  - `- Refresh()`: owned → lock off, select button interactable, price button hidden; locked → the opposite
 
 **`CoinsLabel` : MonoBehaviour** 🧪.
 - Requires `TMP_Text` on the same object (`- label: TMP_Text`, set in `Awake`)
@@ -561,9 +564,9 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 |---|---|---|---|---|
 | UC1 | Start the game (open the main menu) | Player | | ✅ |
 | UC2 | Choose mode | Player | | ✅ |
-| UC3 | Choose car | Player | Single only; «extend» UC5 when the car is locked | ✅ / buying 📋 |
-| UC4 | Choose map | Player | «extend» UC5 when the map is locked | ✅ / buying 📋 |
-| UC5 | Buy a car or map | Player | | 📋 |
+| UC3 | Choose car | Player | Single only; «extend» UC5 when the car is locked | ✅ / buying 🧪 |
+| UC4 | Choose map | Player | «extend» UC5 when the map is locked | ✅ / buying 🧪 |
+| UC5 | Buy a car or map | Player | | 🧪 |
 | UC6 | View rating | Player | | 🧪 |
 | UC7 | Change options (music on/off, volume) | Player | | 🧪 |
 | UC8 | Play a race | Player, Player 2 / Bot | «include» UC9, UC10, UC13, UC14 | 🧪 |
@@ -589,15 +592,15 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 1. Player clicks **Start** → `PanelNavigator.Show(modePanel)`.
 2. Player clicks **Single** → `ModeSelector.SelectSingle()` → `GameSession.Mode = Single` → `PanelNavigator.Show(carsPanel)`.
    (In Doubles: `SelectDoubles()` → `PanelNavigator.Show(mapsPanel)`; step 3 is skipped.)
-3. Player clicks a car → `CarSelector.SelectCar(id)` → `SaveService.Data.OwnsCar(car)` → if owned: `GameSession.CarId = id` → `PanelNavigator.Show(mapsPanel)`.
-4. Player clicks a map → `MapSelector.SelectMap(id)` → `OwnsMap(map)` → if owned: `GameSession.MapId = id` → `SceneManager.LoadScene(id)`.
+3. Player clicks a car (its button is clickable only when the car is owned, see `ShopButton`) → `CarSelector.SelectCar(id)` → `GameSession.CarId = id` → `PanelNavigator.Show(mapsPanel)`.
+4. Player clicks a map (clickable only when owned) → `MapSelector.SelectMap(id)` → `GameSession.MapId = id` → `SceneManager.LoadScene(id)`.
 
 ### 6.2 Buy a car (the same for a map)
-1. Player clicks **Buy** → `ShopButton.Buy()`.
+1. Player clicks the price button → `ShopButton.Buy()`.
 2. `ShopButton` → `SaveService.Data.TryBuyCar(car)` → `false` if there aren't enough coins (nothing happens). Otherwise `coins −= price`, `purchasedCars.Add(id)` → `true`.
 3. `ShopButton` → `SaveService.Save()` → writes `save.json`.
-4. `ShopButton` → `AudioManager.Instance.PlayEffect(purchaseSound)`.
-5. `ShopButton` → `Refresh()` → hides itself; `CoinsLabel` shows the new amount.
+4. `ShopButton` → `AudioManager.Instance.PlayEffect("purchase")`.
+5. `ShopButton` → `Refresh()` → hides the lock and itself, makes the select button clickable; `CoinsLabel` shows the new amount.
 
 ### 6.3 View rating
 1. Player clicks **Rating** → `PanelNavigator.Show(ratingPanel)` → `RatingPanel.OnEnable()`.
