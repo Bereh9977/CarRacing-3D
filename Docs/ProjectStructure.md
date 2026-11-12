@@ -27,7 +27,7 @@ The diagrams can show everything regardless of status. The status only says how 
 - **Countdown.** Before every lap: the pictures 3, 2, 1 and GO from the pygame game, one second each. Cars can't move until GO.
 - **Prize (Single only):** win **+200 coins**, tie **+100 coins**, loss 0.
 - **Coins:** each race shows **5 random coins** of the ones placed on the map (at least 5), **+100 coins** each. Only the player collects them; Single mode only.
-- **Obstacles:** each map has a pool of places (12 in pygame, at least 4). At race start **4 random ones** are switched on. They affect only cars driven by people (both cars in Doubles), not the bot.
+- **Obstacles:** each map has obstacles placed by hand on fixed spots. At race start **up to 4 random ones** are switched on. They affect only cars driven by people (both cars in Doubles), not the bot.
 
   | Obstacle | Maps | Effect | Disappears after a hit |
   |---|---|---|---|
@@ -42,14 +42,14 @@ Race points are separate from coins and are counted live during the race.
 
 | Event | Points |
 |---|---|
-| Pass a checkpoint first (8 checkpoints per lap, in order) | +100 |
+| Pass a checkpoint first (8 checkpoints per lap, in order; invisible lines across the road, spread evenly along the `BotRoute`) | +100 |
 | Pass a checkpoint second | +50 |
 | Win a lap | +200; the lap's points (checkpoints + win) are multiplied by the win streak: ×1, ×1.5, ×2 |
-| Hit a wall (a new hit counts only 0.5 s after the last one) | −20 |
-| Hit an obstacle | −50 |
+| Hit a wall (a new hit counts only 0.5 s after the last one; not the bot) | −20 |
+| Hit an obstacle (cars driven by people only) | −50 |
 | Win all laps of a 2-lap race ("flawless") | +200 |
 
-Points never go below 0. In Single mode, the player's and the bot's points are added to their totals in the save file. The best result per map is stored too.
+Points never go below 0. In Single mode, the player's and the bot's points are added to their totals in the save file. Doubles shows the points but doesn't save them.
 
 ### 1.4 Rating
 Two rows, the player and the Bot. The Bot starts with **5000** race points, so it is first at the beginning. If the points are equal, the Bot stays above. Under the table:
@@ -78,16 +78,16 @@ Assets/
 ├── Scenes/              MainMenu + 6 map scenes
 ├── Scripts/
 │   ├── Car/             CarController ✅, PlayerCarInput ✅, CarCamera ✅, BotDriver 🧪
-│   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 📋, RaceTracker 📋, Checkpoint 📋,
+│   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 🧪, RaceTracker 🧪,
 │   │                    RaceHud 📋, PauseMenu 📋
 │   ├── Pickups/         Coin 🧪, Obstacle 🧪
 │   ├── Audio/           AudioManager 📋
 │   ├── Data/            MapConfig ✅, CarDefinition ✅, ObstacleType ✅
-│   ├── Core/            SaveData ✅, SaveService ✅, MapRecord 📋
+│   ├── Core/            SaveData ✅, SaveService ✅
 │   ├── Editor/          CarRacingMenu ✅ (Unity Editor tools, not part of the game)
 │   └── (root)           menu scripts (teammate): GameSession ✅, PanelNavigator ✅, ModeSelector ✅,
 │                        CarSelector ✅, MapSelector ✅, ShopButton 📋, CoinsLabel 🧪,
-│                        RatingPanel 📋, OptionsPanel 📋
+│                        RatingPanel 🧪, OptionsPanel 📋
 ├── Data/
 │   ├── Maps/            6 MapConfig assets (one per map)
 │   └── Cars/            5 CarDefinition assets (car1–car5)
@@ -128,8 +128,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `Lighting`, `Environment`, `Track`, `Decorations` | Groups made by the Organize tool | ✅ |
 | Start/finish road piece | Contains the `FinishLine` trigger | 🧪 |
 | `Coins` group | at least 5 `Coin` / `StarCoin` objects; the race shows 5 random ones | ✅ |
-| `Obstacles` group | at least 4 `Obstacle` objects of the map's type (maps with obstacles only) | 🧪 |
-| `Checkpoints` group | 8 `Checkpoint` triggers across the road, in driving order | 📋 |
+| `Obstacles` group | `Obstacle` objects of the map's type on fixed spots (maps with obstacles only) | 🧪 |
 | `BotRoute` | Route points for the bot along the road (children, in order), made by **Tools → Car Racing → Generate Bot Route**. A plain object, no script | ✅ |
 | `Race` (prefab) | Everything the race needs; see 3.3 | 🧪 |
 
@@ -138,7 +137,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 |---|---|
 | Car (`Mini_Cooper`, `Subaruu_Impreeza`, `Porschee_959_Paris_Dakar`, `Lanncia_Stratoss`, `Toyotta_Celicca`) | Rigidbody, CapsuleCollider, **CarController**, **PlayerCarInput** |
 | Bot car (made at runtime from a car prefab) | as above, but `PlayerCarInput` is switched off and **BotDriver** is added |
-| `Race` | **RaceManager**, **PauseMenu**; children `PlayerSpawn` (car 1), `BotSpawn` (car 2), `Canvas` (**RaceHud**: lap, points, coins, countdown, message, result panel, pause panel), `EventSystem`. In Doubles a copy of `Main Camera` is made at runtime for the right half |
+| `Race` | **RaceManager**, **PauseMenu**; children `PlayerSpawn` (car 1), `BotSpawn` (car 2), `Canvas` (**RaceHud**: lap, points, coins, countdown, result panel, pause panel), `EventSystem`. In Doubles a copy of `Main Camera` is made at runtime for the right half |
 | `Coin`, `StarCoin` | trigger collider, **Coin** |
 | `Ice`, `Banana`, `Sand` | trigger collider on the `Obstacle` layer, **Obstacle** |
 | `AudioManager` | 2 AudioSources (music, effects), **AudioManager** |
@@ -157,10 +156,9 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `BotDriver` | MonoBehaviour | Car | 🧪 | Route points → `CarController` |
 | `CarCamera` | MonoBehaviour | Car | ✅ | Follows a car |
 | `RaceManager` | MonoBehaviour | Race | 🧪 (the full version is 📋) | Runs the race: spawn, countdown, laps, result, rewards |
-| `Racer` | plain C# class | Race | 📋 | One participant: name, car, spawn and points state |
-| `RaceTracker` | plain C# class | Race | 📋 | Counts race points |
+| `Racer` | plain C# class | Race | 🧪 | One participant: name, car and race-point state |
+| `RaceTracker` | plain C# class | Race | 🧪 | Counts race points; builds the 8 checkpoints from the `BotRoute` |
 | `FinishLine` | MonoBehaviour | Race | 🧪 | Detects crossings of the finish line |
-| `Checkpoint` | MonoBehaviour | Race | 📋 | Detects passes of a checkpoint |
 | `RaceHud` | MonoBehaviour | Race | 📋 | All texts and panels during the race |
 | `PauseMenu` | MonoBehaviour | Race | 📋 | Esc pause: Resume, Options, Menu |
 | `Coin` | MonoBehaviour | Pickups | 🧪 | +100 coins on pickup |
@@ -170,7 +168,6 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `CarDefinition` | ScriptableObject | Data | ✅ | Car settings |
 | `ObstacleType` | enum | Data | ✅ | `None`, `IceCube`, `BananaPeel`, `SandPile` |
 | `SaveData` | Serializable class | Core | ✅ (race results, music 📋) | The player's progress |
-| `MapRecord` | Serializable class | Core | 📋 | Best race points on one map |
 | `SaveService` | static class | Core | ✅ | Loads and saves `SaveData` as JSON |
 | `GameSession` | static class | root | ✅ | Menu choices passed to the map scene |
 | `GameMode` | enum | root | ✅ | `Single`, `Doubles` |
@@ -180,7 +177,7 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `MapSelector` | MonoBehaviour | root (menu) | ✅ | Map buttons, loads the scene |
 | `ShopButton` | MonoBehaviour | root (menu) | 📋 | Buy button of a locked car or map |
 | `CoinsLabel` | MonoBehaviour | root (menu) | 🧪 | Shows the player's coins |
-| `RatingPanel` | MonoBehaviour | root (menu) | 📋 | Rating table and mission text |
+| `RatingPanel` | MonoBehaviour | root (menu) | 🧪 | Rating table and mission text |
 | `OptionsPanel` | MonoBehaviour | root (menu) | 📋 | Music on/off, volume |
 | `CarRacingMenu` | static class, Editor only | Editor | ✅ | Tools → Car Racing menu |
 
@@ -206,18 +203,17 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- sandDirection: int` (−1, 0, 1) 📋
   - `- sandDirectionTime: float` 📋
 - **Events:**
-  - `+ event WallHit: Action<CarController>` 📋
-  - `+ event ObstacleHit: Action<CarController>` 📋
+  - `+ event WallHit: Action<CarController>` 🧪
 - **Methods:**
   - `+ SetMaxSpeed(value: float)`
   - `+ SetInput(throttle: float, steer: float)`: both −1…1
   - `+ Stop()` 🧪: speed 0 on the spot (when a lap ends and during the countdown)
   - `+ ResetTo(spawn: Transform)` 🧪: puts the car on the spawn point and sets speed 0
   - `+ Spin(seconds: float)` 🧪: banana
-  - `+ SetDrift(degreesPerSecond: float)` 🧪: sand (135) and ice (270); 0 ends it: sand; picks a new random direction every 1.5 s
+  - `+ SetDrift(degreesPerSecond: float)` 🧪: sand (135) and ice (270); 0 ends it. Picks a new random direction every 1.5 s and fades out below 5 m/s like steering, so a slow car isn't spun on the spot
   - `- Awake()`
   - `- FixedUpdate()`: speed, steering and velocity. While frozen it does nothing; while spinning it only rotates.
-  - `- OnCollisionEnter(collision)`: bounce off `Wall`; raises `WallHit` 📋
+  - `- OnCollisionEnter(collision)`: bounce off `Wall`; raises `WallHit` 🧪 (on every wall contact; the cooldown is in `RaceTracker`)
 
 **`PlayerCarInput` : MonoBehaviour.** Requires `CarController`.
 - **Fields:**
@@ -261,8 +257,9 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `[SF] player2Throttle, player2Steer: InputActionReference` 🧪
   - `[SF] countdownClip, lapWonClip, winClip, tieClip: AudioClip` 📋
   - `- map: MapConfig`
-  - `- racers: List<Racer>` 📋
-  - `- tracker: RaceTracker` 📋
+  - `- racer1, racer2: Racer` 🧪
+  - `- tracker: RaceTracker` 🧪
+  - `[SF] pointsText: TMP_Text` 🧪
   - `- lapsPlayed: int` 📋
   - `- raceOver: bool` 📋
 - **Methods:**
@@ -275,11 +272,12 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- SetUpCameras()` 🧪: Single: `Main Camera`, full screen; Doubles: `Main Camera` on the left half and a runtime copy of it (no `AudioListener`) on the right half
   - `- Countdown(): IEnumerator` 📋: coroutine. Input off → 3, 2, 1, GO → input on.
   - `- OnFinishLineCrossed(car: CarController, direction: int)`: the first forward crossing in a lap → `FinishLap(winner)`
-  - `- OnCheckpointPassed(car, index)` 📋 → `tracker.PassCheckpoint`
-  - `- OnWallHit(car)` 📋 → `tracker.WallHit`
-  - `- OnObstacleHit(car)` 📋 → `tracker.ObstacleHit`
+  - `- FixedUpdate()` 🧪: `tracker.Update()` while the cars can drive
+  - `- Update()` 🧪: points text: Single "Race: N"; Doubles "Car 1: N", "Car 2: N"
+  - `- OnWallHit(car)` 🧪 → `tracker.WallHit` (human cars only)
+  - `- OnObstacleHit(car)` 🧪 → `tracker.ObstacleHit` (from the static `Obstacle.Hit`)
   - `- OnCoinCollected()` 📋 → `hud.ShowCoins`
-  - `- FinishLap(winner: Racer)` 📋: `tracker.FinishLap`, a "Lap N of M done!" message, then either the last lap → `FinishRace()`, or reset the cars + bot route + `Countdown()`
+  - `- FinishLap(winner: Racer)` 📋: `tracker.FinishLap`, a 1 s pause, then either the last lap → `FinishRace()`, or reset the cars + bot route + `Countdown()`
   - `- FinishRace()` 📋: `tracker.FinishRace`, decides the result, `GiveRewards()`, `hud.ShowResult`
   - `- GiveRewards(result)` 📋: Single only: prize coins, `SaveData.AddRaceResult`, `SaveService.Save()`
   - `- SetRacersInput(enabled: bool)` 📋
@@ -287,34 +285,35 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- FindMap(sceneName): MapConfig`
   - `- FindCar(id): CarDefinition`
 
-**`Racer`** 📋 (plain C# class). One participant: who it is and its race-point state (pygame `RacerStats`).
+**`Racer`** 🧪 (plain C# class). One participant: who it is and its race-point state (pygame `RacerStats`).
 - **Fields:**
   - `+ name: string` ("You", "Bot", "Car 1", "Car 2")
   - `+ car: CarController`
-  - `+ spawn: Transform`
-  - `+ isHuman: bool`
   - `+ points: int`
   - `+ lapsWon: int`
   - `+ streak: int`
   - `+ nextCheckpoint: int`
   - `+ lapCheckpointPoints: int`
   - `+ lastWallHitTime: float`
+  - `+ previousPosition: Vector3`: for checkpoint crossings
 - **Methods:**
-  - `+ Racer(name, car, spawn, isHuman)`: constructor
+  - `+ Racer(name, car)`: constructor
   - `+ ResetLap()`
 
-**`RaceTracker`** 📋 (plain C# class). Race points (pygame `RaceTracker`). The point values from 1.3 are constants in this class.
+**`RaceTracker`** 🧪 (plain C# class). Race points (pygame `RaceTracker`). The point values from 1.3 are constants in this class.
 - **Fields:**
-  - `- racers: List<Racer>`
+  - `- racers: Racer[]`
+  - `- checkpoints, checkpointDirections: Vector3[]` (8): a point in the middle of the road and the driving direction there
   - `- checkpointTaken: bool[]` (8)
 - **Methods:**
-  - `+ RaceTracker(racers: List<Racer>, checkpointCount: int)`
-  - `+ PassCheckpoint(racer, index)`: counts only the racer's next checkpoint; +100 if first, +50 if second
+  - `+ RaceTracker(racers: Racer[], route: Transform)`: puts 8 checkpoints evenly along the `BotRoute` points, like the pygame gates
+  - `+ Update()`: every physics step; a racer crossing its next checkpoint forwards, within 10 m of the middle, → `PassCheckpoint`
+  - `- Crossed(checkpoint, from, to): bool`
+  - `- PassCheckpoint(racer)`: +100 if first, +50 if second
   - `+ WallHit(racer)`: −20, with a 0.5 s cooldown
   - `+ ObstacleHit(racer)`: −50
-  - `+ FinishLap(winner: Racer)`: +200 × streak multiplier; resets the streak of the others; `NewLap()`
+  - `+ FinishLap(winner: Racer)`: +200 × streak multiplier; resets the streak of the others; resets every racer's lap state
   - `+ FinishRace(requiredLaps: int)`: the flawless bonus
-  - `- NewLap()`
   - `- Penalty(racer, amount)`: never below 0
 
 **`FinishLine` : MonoBehaviour** 🧪. A trigger box on the start/finish road piece; its Z axis is the driving direction.
@@ -326,16 +325,9 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- OnTriggerExit(other)`
   - `- IsInFront(car): bool`
 
-**`Checkpoint` : MonoBehaviour** 📋. A trigger box across the road.
-- **Members:**
-  - `[SF] index: int` (0–7, in driving order)
-  - `+ static event Passed: Action<CarController, int>`
-- **Methods:**
-  - `- OnTriggerEnter(other)`: `Passed(car, index)`
-
 **`RaceHud` : MonoBehaviour** 📋. On the `Race` canvas.
 - **Fields:**
-  - `[SF] lapText, pointsText, coinsText, messageText: TMP_Text`
+  - `[SF] lapText, pointsText, coinsText: TMP_Text`
   - `[SF] countdownImage: Image`, `[SF] countdownSprites: Sprite[]` (the pygame pictures 3, 2, 1, GO)
   - `[SF] resultPanel: GameObject`
   - `[SF] resultTitle, resultDetails: TMP_Text`
@@ -344,7 +336,6 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ ShowPoints(racers: List<Racer>)`: Single "Race: N"; Doubles "Car 1: N", "Car 2: N"
   - `+ ShowCoins(coins)`
   - `+ ShowCountdown(step)`: shows picture `step` (3, 2, 1, GO), or hides it
-  - `+ ShowMessage(text, seconds)`: "Lap 1 of 2 done!"
   - `+ ShowResult(title, lines: string[])`: "You win!" / "Bot wins!" / "Car 1 wins!" / "It's a tie!" + points per racer
 
 **`PauseMenu` : MonoBehaviour** 📋. On the `Race` prefab.
@@ -378,7 +369,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `[SF] type: ObstacleType`, `+ Type` (read-only, used by Validate)
   - `[SF] sound: AudioClip` 📋
 - **Methods:**
-  - `- OnTriggerEnter(other)`: only human cars. Banana → `car.Spin(1)` and disappears; Sand → `car.SetDrift(135)`; Ice → `car.SetDrift(270)`. Later 📋: it plays the sound, and the car raises `ObstacleHit`.
+  - `- OnTriggerEnter(other)`: only human cars. Banana → `car.Spin(1)` and disappears; Sand → `car.SetDrift(135)`; Ice → `car.SetDrift(270)`. It raises the static `Hit(car)`. Later 📋: it plays the sound.
   - `- OnTriggerExit(other)`: Sand and ice → `car.SetDrift(0)`
 
 #### Audio
@@ -428,7 +419,6 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ purchasedMaps: List<string>`
   - `+ racePoints: int`
   - `+ botRacePoints: int` (5000)
-  - `+ bestPoints: List<MapRecord>` 📋
   - `+ musicOn: bool` (true) 📋
   - `+ musicVolume: float` (0.5) 📋
 - **Methods:**
@@ -438,11 +428,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ TryBuyMap(map): bool`
   - `- TryBuy(id, price, alreadyOwned, owned): bool`
   - `+ PointsToFirstPlace: int` (property)
-  - `+ AddRaceResult(mapId, points, botPoints): bool` 📋: adds to the totals; returns true for a new best on that map
-
-**`MapRecord` (Serializable)** 📋.
-- `+ mapId: string`
-- `+ points: int`
+  - `+ AddRaceResult(points, botPoints)` 🧪: adds to the totals
 
 **`SaveService` (static)** ✅.
 - `- data: SaveData`
@@ -503,7 +489,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - Requires `TMP_Text` on the same object (`- label: TMP_Text`, set in `Awake`)
 - `- Update()`: shows `SaveService.Data.coins`
 
-**`RatingPanel` : MonoBehaviour** 📋.
+**`RatingPanel` : MonoBehaviour** 🧪.
 - **Fields:**
   - `[SF] firstName, firstPoints, secondName, secondPoints, missionText: TMP_Text`
   - `[SF] firstAvatar, secondAvatar: Image`
@@ -523,11 +509,9 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 #### Editor
 
 **`CarRacingMenu` (static, Editor only)** ✅.
-- `+ ValidateOpenScene()`: checks one `RaceManager`, one `FinishLine`, a `BotRoute` with ≥ 2 points and at least 5 coins. It also checks at least 4 obstacles of the map's `obstacleType` (none on maps without). Final version 📋 also checks 8 `Checkpoint`s with indexes 0–7.
+- `+ ValidateOpenScene()`: checks one `RaceManager`, one `FinishLine`, a `BotRoute` with ≥ 2 points and at least 5 coins.
 - `+ OrganizeOpenScene()`
 - `- GroupFor(root): string`
-- `+ PlaceObstacles()`: replaces the scene's obstacles with 12 of the map's type, spread along the `BotRoute` (10–90 % of the way) with a random sideways offset
-- `- FindMapConfig(scene): MapConfig`
 - `+ GenerateBotRoute()`: walks the road from the `Race` start to the finish line, keeping to the middle between the walls and turning before corners, and puts a point every 10 m under a new `BotRoute` object
 - `+ ResetSaveData()`
 
@@ -544,7 +528,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 | `RaceManager` | association | `RaceHud`, `PauseMenu` (same prefab) | 1 → 1 |
 | `RaceManager` | creates (Instantiate) | car with `CarController` + `PlayerCarInput` / `BotDriver` | 1 → 2 |
 | `RaceManager` | adds / configures | `CarCamera` | 1 → 1..2 |
-| `RaceManager` | subscribes to events | `FinishLine.Crossed`, `Checkpoint.Passed`, `CarController.WallHit/ObstacleHit`, `Coin.Collected` | |
+| `RaceManager` | subscribes to events | `FinishLine.Crossed`, `CarController.WallHit`, `Obstacle.Hit`, `Coin.Collected` | |
 | `RaceManager` | dependency | `GameSession`, `SaveService`, `AudioManager` | |
 | `Racer` | association | `CarController` | 1 → 1 |
 | `RaceTracker` | aggregation | `Racer` | 1 → 2 |
@@ -553,7 +537,6 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 | `Obstacle`, `MapConfig` | association | `ObstacleType` | |
 | `CarDefinition` | association | car prefab (`GameObject`) | 1 → 1 |
 | `SaveService` | composition | `SaveData` | 1 → 1 |
-| `SaveData` | composition | `MapRecord` | 1 → 0..6 |
 | `SaveData` | dependency (parameters) | `CarDefinition`, `MapConfig` | |
 | `GameSession` | association | `GameMode` | |
 | `ModeSelector`, `CarSelector` | association | `PanelNavigator` | |
@@ -561,7 +544,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 | `CarSelector`, `MapSelector`, `ShopButton`, `CoinsLabel`, `RatingPanel` | dependency | `SaveService` | |
 | `OptionsPanel`, `ShopButton`, `PauseMenu` | dependency | `AudioManager` | |
 | `PauseMenu` | association | `OptionsPanel` | |
-| `CarRacingMenu` | dependency | `RaceManager`, `FinishLine`, `Checkpoint`, `SaveService`; creates the `BotRoute` object | |
+| `CarRacingMenu` | dependency | `RaceManager`, `FinishLine`, `Coin`, `SaveService`; creates the `BotRoute` object | |
 
 Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `MapConfig` and `CarDefinition` inherit from `ScriptableObject`. There is no inheritance between our own classes. The pygame `Bots(Cars)` inheritance became composition: the bot is a normal car, `BotDriver` drives it, and it has no `PlayerCarInput`.
 
@@ -585,14 +568,14 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC3 | Choose car | Player | Single only; «extend» UC5 when the car is locked | ✅ / buying 📋 |
 | UC4 | Choose map | Player | «extend» UC5 when the map is locked | ✅ / buying 📋 |
 | UC5 | Buy a car or map | Player | | 📋 |
-| UC6 | View rating | Player | | 📋 |
+| UC6 | View rating | Player | | 🧪 |
 | UC7 | Change options (music on/off, volume) | Player | | 📋 |
 | UC8 | Play a race | Player, Player 2 / Bot | «include» UC9, UC10, UC13, UC14 | 🧪 |
 | UC9 | Wait for the countdown | Player, Player 2 | | 🧪 |
 | UC10 | Drive the car | Player, Player 2 | «include» bounce off walls | ✅ |
 | UC11 | Collect a coin | Player | «extend» UC10, Single only | 🧪 |
 | UC12 | Hit an obstacle | Player, Player 2 | «extend» UC10, maps with obstacles | 🧪 |
-| UC13 | Pass checkpoints and earn race points | Player, Player 2, Bot | | 📋 |
+| UC13 | Pass checkpoints and earn race points | Player, Player 2, Bot | | 🧪 |
 | UC14 | Win a lap | Player, Player 2, Bot | | 🧪 |
 | UC15 | See the race result and get the prize | Player | | 📋 |
 | UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 📋 |
@@ -632,8 +615,8 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
    - **Doubles:** `SpawnCar(car1, spawn1)` → `Racer("Car 1")`; `SpawnCar(car2, spawn2)` → `PlayerCarInput.SetActions(Player2 actions)` → `Racer("Car 2")`. All coins are turned off.
    - `SpawnCar` → `Instantiate(definition.prefab)` → `CarController.SetMaxSpeed(...)`.
 3. `RaceManager` → `SetUpCameras()` → `AddComponent<CarCamera>().SetTarget(...)` for one or two cameras.
-4. `RaceManager` → `new RaceTracker(racers, 8)`.
-5. `RaceManager` subscribes to `FinishLine.Crossed`, `Checkpoint.Passed`, `Coin.Collected`, and `WallHit` / `ObstacleHit` of every car.
+4. `RaceManager` → `new RaceTracker(racers, BotRoute)` → 8 checkpoints along the route.
+5. `RaceManager` subscribes to `FinishLine.Crossed`, `Coin.Collected`, `Obstacle.Hit`, and `WallHit` of the human cars.
 6. `RaceManager` → `KeepRandom(obstacles, 4)`.
 7. `RaceManager` → `hud.ShowLap(1, laps)`, `ShowPoints`, `ShowCoins`.
 8. `RaceManager` → `StartCoroutine(Countdown())`.
@@ -656,9 +639,9 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 3. `RaceManager.OnWallHit(car)` → `tracker.WallHit(racer)` → −20 if 0.5 s passed since the last hit → `hud.ShowPoints`.
 
 ### 6.8 Pass a checkpoint
-1. Car enters the trigger → `Checkpoint.OnTriggerEnter` → `Passed(car, index)`.
-2. `RaceManager.OnCheckpointPassed` → `tracker.PassCheckpoint(racer, index)`.
-3. If `index == racer.nextCheckpoint`: +100 if no one took it this lap, otherwise +50; `nextCheckpoint++`.
+1. Unity → `RaceManager.FixedUpdate()` → `tracker.Update()`.
+2. For every racer: `Crossed(racer.nextCheckpoint, previousPosition, position)` → `PassCheckpoint(racer)`.
+3. +100 if no one took it this lap, otherwise +50; `nextCheckpoint++`.
 4. `RaceManager` → `hud.ShowPoints(racers)`.
 
 ### 6.9 Collect a coin (Single)
@@ -673,13 +656,13 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
    - **Banana:** `CarController.Spin(1)`.
    - **Sand / Ice:** `CarController.SetDrift(135 / 270)`, until `OnTriggerExit` → `SetDrift(0)`.
 3. `Obstacle` → `AudioManager.PlayEffect(sound)`; banana → `Destroy(obstacle)`.
-4. `CarController` → `ObstacleHit(car)` → `RaceManager.OnObstacleHit` → `tracker.ObstacleHit(racer)` (−50) → `hud.ShowPoints`.
+4. `Obstacle` → static `Hit(car)` → `RaceManager.OnObstacleHit` → `tracker.ObstacleHit(racer)` (−50) → `hud.ShowPoints`.
 
 ### 6.11 Finish a lap
 1. Car crosses the finish line → `FinishLine.OnTriggerExit` → `Crossed(car, +1)`.
 2. `RaceManager.OnFinishLineCrossed` → the first crossing in this lap → `FinishLap(winner)`.
 3. `RaceManager` → `tracker.FinishLap(winner)` → winner +200 × streak; `winner.lapsWon++`; `lapsPlayed++`.
-4. `RaceManager` → `AudioManager.PlayEffect(lapWonClip)` → `hud.ShowMessage("Lap N of M done!", 2)`.
+4. `RaceManager` → `AudioManager.PlayEffect(lapWonClip)` → wait 1 s.
 5. If `lapsPlayed < requiredLaps`: every racer → `CarController.ResetTo(racer.spawn)`; `BotDriver.ResetRoute()`; `Countdown()`.
 6. Otherwise → `FinishRace()` (6.12).
 
@@ -689,7 +672,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 3. `RaceManager` compares `lapsWon` → win / loss / tie → `AudioManager.PlayEffect(winClip or tieClip)`.
 4. **Single only:** `GiveRewards()`:
    - `SaveService.Data.coins += 200` on a win, `+= 100` on a tie;
-   - `SaveService.Data.AddRaceResult(mapId, player.points, bot.points)`;
+   - `SaveService.Data.AddRaceResult(player.points, bot.points)`;
    - `SaveService.Save()`.
 5. `RaceManager` → `hud.ShowResult(title, points per racer)`.
 6. Player clicks **Menu** → `RaceManager.BackToMenu()` → `LoadScene("MainMenu")`.
@@ -708,7 +691,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 
 ### 6.15 Editor: organize and validate a map
 1. Developer → **Tools → Car Racing → Organize Open Scene** → `CarRacingMenu.OrganizeOpenScene()` → for each root object `GroupFor()` → moves it into its group.
-2. Developer → **Validate Open Scene** → `ValidateOpenScene()` → counts `RaceManager`, `FinishLine` (and 📋 checkpoints, route, coins, obstacles) → writes the result to the Console.
+2. Developer → **Validate Open Scene** → `ValidateOpenScene()` → counts `RaceManager`, `FinishLine` the route, coins and obstacles → writes the result to the Console.
 
 ---
 
@@ -730,7 +713,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 | **A1** | Manage profile and choose race settings | mouse clicks, `save.json` | prices (`CarDefinition`, `MapConfig`), shop rules | `GameSession` (mode, car, map), purchases, music settings, loaded map scene | `PanelNavigator`, `ModeSelector`, `CarSelector`, `MapSelector`, `ShopButton`, `CoinsLabel`, `RatingPanel`, `OptionsPanel`, `SaveService` |
 | **A2** | Prepare the race | `GameSession`, map scene | `MapConfig` (speeds, laps, obstacle type), `CarDefinition` (prefab) | spawned racers, cameras, chosen obstacles, HUD, started countdown | `RaceManager`, `CarCamera`, `RaceHud`, `BotRoute` |
 | **A3** | Drive the cars | keyboard input, bot route, "GO!" signal | key bindings, physics settings, max speeds | car movement and positions | `PlayerCarInput`, `BotDriver`, `CarController` |
-| **A4** | Handle track events | car positions and contacts | race rules (coin value, obstacle effects, point values) | coins, obstacle effects on cars, race points changes | `Coin`, `Obstacle`, `Checkpoint`, `CarController` (walls), `RaceTracker` |
+| **A4** | Handle track events | car positions and contacts | race rules (coin value, obstacle effects, point values) | coins, obstacle effects on cars, race points changes | `Coin`, `Obstacle`, `CarController` (walls), `RaceTracker` (checkpoints) |
 | **A5** | Count laps and decide the winner | finish line crossings | required laps, lap winner rule | lap results, race result, reset for next lap | `FinishLine`, `RaceManager`, `RaceTracker`, `RaceHud` |
 | **A6** | Save progress | race result, points, coins, purchases, settings | prize rules, Single-only saving | `save.json`, rating | `SaveData`, `SaveService` |
 
