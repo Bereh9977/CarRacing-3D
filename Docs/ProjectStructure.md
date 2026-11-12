@@ -81,7 +81,7 @@ Assets/
 │   ├── Race/            RaceManager 🧪, FinishLine 🧪, Racer 🧪, RaceTracker 🧪,
 │   │                    RaceHud 📋, PauseMenu 🧪
 │   ├── Pickups/         Coin 🧪, Obstacle 🧪
-│   ├── Audio/           AudioManager 📋
+│   ├── Audio/           AudioManager 🧪, VolumeSlider 🧪
 │   ├── Data/            MapConfig ✅, CarDefinition ✅, ObstacleType ✅
 │   ├── Core/            SaveData ✅, SaveService ✅
 │   ├── Editor/          CarRacingMenu ✅ (Unity Editor tools, not part of the game)
@@ -92,7 +92,7 @@ Assets/
 │   ├── Maps/            6 MapConfig assets (one per map)
 │   └── Cars/            5 CarDefinition assets (car1–car5)
 ├── Prefabs/             5 cars (Mini_Cooper, Subaruu_Impreeza, Porschee_959_Paris_Dakar, Lanncia_Stratoss, Toyotta_Celicca), Race 🧪, Coin, Sand, Ice, Banana, AudioManager 📋
-├── Resources/           AudioManager prefab 📋 (loaded by code, so no scene needs it)
+├── Resources/Audio/     Music (track1–14) and Effects (11 pygame sounds), loaded by name by `AudioManager`
 ├── InputSystem_Actions.inputactions
 └── (asset packs)        BEDRILL (track pieces), Ash Assets (cars), BTM_Assets (coins), trees, rocks…
 Docs/                    SceneContract.md (rules for map scenes), this file
@@ -140,7 +140,6 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `Race` | **RaceManager**, **PauseMenu**; children `PlayerSpawn` (car 1), `BotSpawn` (car 2), `Canvas` (**RaceHud**: lap, points, coins, countdown, result panel, pause panel), `EventSystem`. In Doubles a copy of `Main Camera` is made at runtime for the right half |
 | `Coin`, `StarCoin` | trigger collider, **Coin** |
 | `Ice`, `Banana`, `Sand` | trigger collider on the `Obstacle` layer, **Obstacle** |
-| `AudioManager` | 2 AudioSources (music, effects), **AudioManager** |
 
 **Physics layers:** `Car` (8), `Wall` (9), `Pickup` (11), `Obstacle` (12).
 
@@ -163,11 +162,12 @@ Every panel except Main has a Back button (`PanelNavigator.Back`).
 | `PauseMenu` | MonoBehaviour | Race | 🧪 | Esc pause: Resume, Options, Menu |
 | `Coin` | MonoBehaviour | Pickups | 🧪 | +100 coins on pickup |
 | `Obstacle` | MonoBehaviour | Pickups | 🧪 | Ice / banana / sand effect |
-| `AudioManager` | MonoBehaviour, one per game | Audio | 📋 | Music playlist and sound effects |
+| `AudioManager` | MonoBehaviour, one per game | Audio | 🧪 | Music playlist and sound effects |
+| `VolumeSlider` | MonoBehaviour | Audio | 🧪 | Connects the menu volume slider to `AudioManager` |
 | `MapConfig` | ScriptableObject | Data | ✅ | Map settings |
 | `CarDefinition` | ScriptableObject | Data | ✅ | Car settings |
 | `ObstacleType` | enum | Data | ✅ | `None`, `IceCube`, `BananaPeel`, `SandPile` |
-| `SaveData` | Serializable class | Core | ✅ (race results, music 📋) | The player's progress |
+| `SaveData` | Serializable class | Core | ✅ (race results and music volume 🧪) | The player's progress |
 | `SaveService` | static class | Core | ✅ | Loads and saves `SaveData` as JSON |
 | `GameSession` | static class | root | ✅ | Menu choices passed to the map scene |
 | `GameMode` | enum | root | ✅ | `Single`, `Doubles` |
@@ -255,7 +255,6 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `[SF] car1Spawn, car2Spawn: Transform`: the player / Player 1 spawn, and the bot / Player 2 spawn
   - `[SF] hud: RaceHud`
   - `[SF] player2Throttle, player2Steer: InputActionReference` 🧪
-  - `[SF] countdownClip, lapWonClip, winClip, tieClip: AudioClip` 📋
   - `- map: MapConfig`
   - `- racer1, racer2: Racer` 🧪
   - `- tracker: RaceTracker` 🧪
@@ -277,7 +276,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- OnWallHit(car)` 🧪 → `tracker.WallHit` (human cars only)
   - `- OnObstacleHit(car)` 🧪 → `tracker.ObstacleHit` (from the static `Obstacle.Hit`)
   - `- OnCoinCollected()` 📋 → `hud.ShowCoins`
-  - `- FinishLap(winner: Racer)` 📋: `tracker.FinishLap`, a 1 s pause, then either the last lap → `FinishRace()`, or reset the cars + bot route + `Countdown()`
+  - `- FinishLap(winner: Racer)` 📋: `tracker.FinishLap`, a 4 s pause (as in pygame, so the lap-won phrase plays out), then either the last lap → `FinishRace()`, or reset the cars + bot route + `Countdown()`
   - `- FinishRace()` 📋: `tracker.FinishRace`, decides the result, `GiveRewards()`, `hud.ShowResult`
   - `- GiveRewards(result)` 📋: Single only: prize coins, `SaveData.AddRaceResult`, `SaveService.Save()`
   - `- SetRacersInput(enabled: bool)` 📋
@@ -357,39 +356,37 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
 - **Members:**
   - `[SF] value: int` (100)
   - `[SF] spinSpeed: float` (90°/s)
-  - `[SF] sound: AudioClip`
   - `+ static event Collected: Action`
 - **Methods:**
   - `- Update()`: spins the coin
-  - `- OnTriggerEnter(other)`: only a car with `PlayerCarInput` (not the bot) → `SaveService.Data.coins += value`, `Save()`, play the sound, `Collected()`, destroy the coin
+  - `- OnTriggerEnter(other)`: only a car with `PlayerCarInput` (not the bot) → `SaveService.Data.coins += value`, `Save()`, `PlayEffect("coin_collect")`, `Collected()`, destroy the coin
 
 `RaceManager.KeepRandom` keeps 5 random coins on in Single and turns them all off in Doubles.
 
 **`Obstacle` : MonoBehaviour** 🧪. On the `Ice`, `Banana`, `Sand` prefabs (trigger, `Obstacle` layer).
 - **Fields:**
-  - `[SF] type: ObstacleType`, `+ Type` (read-only, used by Validate)
-  - `[SF] sound: AudioClip` 📋
+  - `[SF] type: ObstacleType`, `+ Type` (read-only)
 - **Methods:**
-  - `- OnTriggerEnter(other)`: only human cars. Banana → `car.Spin(1)` and disappears; Sand → `car.SetDrift(135)`; Ice → `car.SetDrift(270)`. It raises the static `Hit(car)`. Later 📋: it plays the sound.
+  - `- OnTriggerEnter(other)`: only human cars. Banana → `car.Spin(1)` and disappears; Sand → `car.SetDrift(135)`; Ice → `car.SetDrift(270)`. It raises the static `Hit(car)`. Sounds: banana `spinning`, ice `ice_sound`, sand none (as in pygame).
   - `- OnTriggerExit(other)`: Sand and ice → `car.SetDrift(0)`
 
 #### Audio
 
-**`AudioManager` : MonoBehaviour** 📋. A single object for the whole game (pygame `music.py`). It's created by code on game start from `Resources/AudioManager` and kept between scenes (`DontDestroyOnLoad`), so no scene has to contain it.
+**`AudioManager` : MonoBehaviour** 🧪. A single object for the whole game (pygame `music.py`). Code creates it on game start and keeps it between scenes (`DontDestroyOnLoad`), so no scene has to contain it. Clips are loaded by name from `Resources/Audio/Music` (`track1`…`track14`) and `Resources/Audio/Effects`.
 - **Fields:**
   - `+ static Instance: AudioManager`
-  - `[SF] tracks: AudioClip[]` (14 music tracks)
-  - `[SF] musicSource, effectsSource: AudioSource`
-  - `[SF] toggleMusicAction, nextTrackAction: InputActionReference`
-  - `- currentTrack: int`
+  - `- music, effects: AudioSource` (added by code; music at the saved volume)
+  - `- toggleMusic, nextTrack: InputAction` (`Game/ToggleMusic`, `Game/NextTrack` from the project-wide actions)
+  - `- currentTrack: int`, `- musicOn: bool`
 - **Methods:**
-  - `- static CreateOnStart()` (`[RuntimeInitializeOnLoadMethod]`)
-  - `- Update()`: M → `ToggleMusic()`, N → `NextTrack()`; starts the next track when one ends
-  - `+ PlayEffect(clip: AudioClip)`
-  - `+ ToggleMusic()`
-  - `+ SetMusicOn(on: bool)`
-  - `+ NextTrack()`
-  - `+ SetVolume(volume: float)`: saves to `SaveData`
+  - `- static Create()` (`[RuntimeInitializeOnLoadMethod]`)
+  - `- Awake()`: sources, actions, click sounds on every scene load, plays track 1
+  - `- Update()`: M → music on/off (pause/unpause); N or the end of a track → next track
+  - `- PlayTrack(index)`: loads the track, unloads the previous one
+  - `+ PlayEffect(name: string)`: one effects channel, a new effect replaces the playing one (as in pygame)
+  - `- AddClickSounds()`: every `Button` in the loaded scene plays `button_sound`
+  - `+ SetVolume(volume: float)` 🧪: music volume, saved to `SaveData.musicVolume`
+  - `+ SetMusicOn(on: bool)` 📋: for the Options on/off buttons
 
 #### Data
 
@@ -421,7 +418,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `+ racePoints: int`
   - `+ botRacePoints: int` (5000)
   - `+ musicOn: bool` (true) 📋
-  - `+ musicVolume: float` (0.5) 📋
+  - `+ musicVolume: float` (0.5) 🧪
 - **Methods:**
   - `+ OwnsCar(car): bool`
   - `+ OwnsMap(map): bool`
@@ -505,7 +502,7 @@ Notation: `+` public, `-` private, `[SF]` private field shown in the Inspector (
   - `- OnEnable()`: slider = saved volume
   - `+ MusicOn()`
   - `+ MusicOff()`
-  - `+ OnVolumeChanged(value: float)` → `AudioManager`
+  - the volume slider has its own small script, `VolumeSlider` 🧪: shows `SaveData.musicVolume` on start and calls `AudioManager.SetVolume` when moved
 
 #### Editor
 
@@ -581,7 +578,7 @@ Inheritance: all MonoBehaviours inherit from `UnityEngine.MonoBehaviour`, and `M
 | UC15 | See the race result and get the prize | Player | | 📋 |
 | UC16 | Pause the race | Player | «extend» UC8; can «include» UC7 | 🧪 (Options 📋) |
 | UC17 | Return to the main menu | Player | from the result or the pause menu | 🧪 |
-| UC18 | Control music (M on/off, N next track) | Player | anywhere | 📋 |
+| UC18 | Control music (M on/off, N next track) | Player | anywhere | 🧪 |
 | UC19 | Race against the bot | Bot (drives by itself) | specialization of UC8 | 🧪 |
 | UC20 | Validate / organize a map scene, reset the save | Developer | | ✅ |
 
@@ -624,7 +621,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 
 ### 6.5 Countdown (before every lap)
 1. `RaceManager` → `SetRacersInput(false)`.
-2. `RaceManager` → `AudioManager.PlayEffect(countdownClip)`.
+2. `RaceManager` → `AudioManager.PlayEffect("321go")`.
 3. Pictures 3, 2, 1: `hud.ShowCountdown(step)` → wait 1 s.
 4. Picture GO: `hud.ShowCountdown(step)` → `SetRacersInput(true)` → wait 1 s → hide the picture.
 
@@ -648,7 +645,7 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 ### 6.9 Collect a coin (Single)
 1. Player's car enters the trigger → `Coin.OnTriggerEnter`.
 2. `Coin` → `SaveService.Data.coins += 100` → `SaveService.Save()`.
-3. `Coin` → `AudioManager.PlayEffect(sound)` → `Collected()` → `Destroy(coin)`.
+3. `Coin` → `AudioManager.PlayEffect("coin_collect")` → `Collected()` → `Destroy(coin)`.
 4. `RaceManager.OnCoinCollected()` → `hud.ShowCoins(SaveService.Data.coins)`.
 
 ### 6.10 Hit an obstacle
@@ -656,21 +653,21 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
 2. Depending on the type:
    - **Banana:** `CarController.Spin(1)`.
    - **Sand / Ice:** `CarController.SetDrift(135 / 270)`, until `OnTriggerExit` → `SetDrift(0)`.
-3. `Obstacle` → `AudioManager.PlayEffect(sound)`; banana → `Destroy(obstacle)`.
+3. `Obstacle` → banana: `AudioManager.PlayEffect("spinning")` → `Destroy(obstacle)`; ice: `PlayEffect("ice_sound")`.
 4. `Obstacle` → static `Hit(car)` → `RaceManager.OnObstacleHit` → `tracker.ObstacleHit(racer)` (−50) → `hud.ShowPoints`.
 
 ### 6.11 Finish a lap
 1. Car crosses the finish line → `FinishLine.OnTriggerExit` → `Crossed(car, +1)`.
 2. `RaceManager.OnFinishLineCrossed` → the first crossing in this lap → `FinishLap(winner)`.
 3. `RaceManager` → `tracker.FinishLap(winner)` → winner +200 × streak; `winner.lapsWon++`; `lapsPlayed++`.
-4. `RaceManager` → `AudioManager.PlayEffect(lapWonClip)` → wait 1 s.
+4. If it's the winner's first lap win: `AudioManager.PlayEffect("car1_win_pt1" or "car2_win_pt1")`. Then wait 4 s.
 5. If `lapsPlayed < requiredLaps`: every racer → `CarController.ResetTo(racer.spawn)`; `BotDriver.ResetRoute()`; `Countdown()`.
 6. Otherwise → `FinishRace()` (6.12).
 
 ### 6.12 Finish the race
 1. `RaceManager` → `SetRacersInput(false)`.
 2. `RaceManager` → `tracker.FinishRace(requiredLaps)` → flawless bonus.
-3. `RaceManager` compares `lapsWon` → win / loss / tie → `AudioManager.PlayEffect(winClip or tieClip)`.
+3. `RaceManager` compares `lapsWon` → win / loss / tie → `AudioManager.PlayEffect("car1_win" / "car2_win" / "tie")`.
 4. **Single only:** `GiveRewards()`:
    - `SaveService.Data.coins += 200` on a win, `+= 100` on a tie;
    - `SaveService.Data.AddRaceResult(player.points, bot.points)`;
@@ -686,9 +683,9 @@ Format: **caller → callee.method() → result**. Each subsection is one sequen
    - **Menu** → `RaceManager.BackToMenu()` → `Time.timeScale = 1` → `LoadScene("MainMenu")`. The race result is not saved.
 
 ### 6.14 Music and options
-1. Game start → `AudioManager.CreateOnStart()` → instantiates the prefab → `DontDestroyOnLoad` → reads `musicOn` and `musicVolume` from `SaveData` → plays track 1.
-2. Player presses M → `AudioManager.ToggleMusic()`; N → `NextTrack()`.
-3. Player moves the volume slider → `OptionsPanel.OnVolumeChanged(v)` → `AudioManager.SetVolume(v)` → `SaveData.musicVolume = v` → `SaveService.Save()`.
+1. Game start → `AudioManager.Create()` → new object + `DontDestroyOnLoad` → music volume from `SaveData.musicVolume` → plays track 1.
+2. Player presses M → music pauses / resumes; N → next track. Anywhere in the game.
+3. Player moves the volume slider → `VolumeSlider` → `AudioManager.SetVolume(v)` → `SaveData.musicVolume = v` → `SaveService.Save()`.
 
 ### 6.15 Editor: organize and validate a map
 1. Developer → **Tools → Car Racing → Organize Open Scene** → `CarRacingMenu.OrganizeOpenScene()` → for each root object `GroupFor()` → moves it into its group.

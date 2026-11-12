@@ -21,6 +21,7 @@ public class Coin : MonoBehaviour
 
         SaveService.Data.coins += value;
         SaveService.Save();
+        AudioManager.Instance.PlayEffect("coin_collect");
         Collected?.Invoke();
         Destroy(gameObject);
     }

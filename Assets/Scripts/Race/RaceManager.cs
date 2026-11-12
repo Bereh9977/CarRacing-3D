@@ -167,6 +167,9 @@ public class RaceManager : MonoBehaviour
             return;
         }
 
+        // As in pygame: a car's first lap win has its own sound.
+        if (RacerFor(car).lapsWon == 0)
+            AudioManager.Instance.PlayEffect(car == car1 ? "car1_win_pt1" : "car2_win_pt1");
         tracker.FinishLap(RacerFor(car));
         StartCoroutine(EndLap());
     }
@@ -181,7 +184,7 @@ public class RaceManager : MonoBehaviour
             yield break;
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(4f); // as in pygame; long enough for the lap-won phrase
 
         car1.ResetTo(car1Spawn);
         car2.ResetTo(car2Spawn);
@@ -199,6 +202,7 @@ public class RaceManager : MonoBehaviour
     private IEnumerator Countdown()
     {
         SetCarsDriving(false);
+        AudioManager.Instance.PlayEffect("321go");
         countdownImage.gameObject.SetActive(true);
         for (int i = 0; i < countdownSprites.Length; i++)
         {
@@ -232,11 +236,20 @@ public class RaceManager : MonoBehaviour
         int car1Wins = racer1.lapsWon;
         int car2Wins = racer2.lapsWon;
         if (car1Wins > car2Wins)
+        {
             resultText.text = doubles ? "Car 1 wins!" : "You win!";
+            AudioManager.Instance.PlayEffect("car1_win");
+        }
         else if (car1Wins < car2Wins)
+        {
             resultText.text = doubles ? "Car 2 wins!" : "Bot wins!";
+            AudioManager.Instance.PlayEffect("car2_win");
+        }
         else
+        {
             resultText.text = "It's a tie!";
+            AudioManager.Instance.PlayEffect("tie");
+        }
         resultText.text += $"<size=50%>\n{racer1.name}: {racer1.points} race points\n{racer2.name}: {racer2.points} race points</size>";
 
         // Prize coins and race points are saved for Single only, as in pygame.
