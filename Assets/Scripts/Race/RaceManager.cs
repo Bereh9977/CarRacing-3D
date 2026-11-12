@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // Runs the race in a map scene, with the pygame rules. Single: the player races the bot. Doubles: two players
 // on one keyboard (WASD and arrows) with a split screen. The first car over the finish line wins the lap, then
 // both cars go back to the start and a 3-2-1-GO countdown starts the next lap. After the last lap the car with
-// more lap wins wins the race. Lives on the Race prefab, which also holds the spawn points.
+// more lap wins wins the race. Race points are counted live by RaceTracker. Lives on the Race prefab, which also holds the spawn points.
 public class RaceManager : MonoBehaviour
 {
     [SerializeField] private MapConfig[] maps;
@@ -21,7 +21,7 @@ public class RaceManager : MonoBehaviour
     [SerializeField] private InputActionReference player2Steer;
     [SerializeField] private TMP_Text lapText;
     [SerializeField] private TMP_Text coinsText;
-    [SerializeField] private TMP_Text messageText;
+    [SerializeField] private TMP_Text pointsText;
     [SerializeField] private Image countdownImage;
     [SerializeField] private Sprite[] countdownSprites; // 3, 2, 1, GO from the pygame game
     [SerializeField] private GameObject finishPanel;
@@ -39,8 +39,9 @@ public class RaceManager : MonoBehaviour
     private CarCamera camera1;
     private CarCamera camera2; // Doubles only
     private bool racing;
-    private int car1Wins;
-    private int car2Wins;
+    private Racer racer1;
+    private Racer racer2;
+    private RaceTracker tracker;
 
     // Crossing the line backwards has to be undone by crossing it forwards before a crossing counts.
     private readonly Dictionary<CarController, int> backwardCrossings = new Dictionary<CarController, int>();
@@ -64,6 +65,13 @@ public class RaceManager : MonoBehaviour
             Destroy(car2.GetComponent<PlayerCarInput>());
             car2.gameObject.AddComponent<BotDriver>().SetRoute(GameObject.Find("BotRoute").transform);
         }
+        racer1 = new Racer(doubles ? "Car 1" : "You", car1);
+        racer2 = new Racer(doubles ? "Car 2" : "Bot", car2);
+        tracker = new RaceTracker(new[] { racer1, racer2 }, GameObject.Find("BotRoute").transform);
+        // As in pygame, the bot loses no points for walls; obstacles don't touch it at all.
+        car1.WallHit += OnWallHit;
+        if (doubles) car2.WallHit += OnWallHit;
+        Obstacle.Hit += OnObstacleHit;
         SetUpCameras();
         // As in pygame: Single shows 5 random coins of the ones placed, Doubles none; every race has 4 random obstacles.
         KeepRandom(FindObjectsByType<Coin>(), doubles ? 0 : CoinsShown);
@@ -117,6 +125,33 @@ public class RaceManager : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        if (racing) tracker.Update();
+    }
+
+    private void Update()
+    {
+        pointsText.text = doubles
+            ? $"Car 1: {racer1.points}\nCar 2: {racer2.points}"
+            : $"Race: {racer1.points}";
+    }
+
+    private Racer RacerFor(CarController car)
+    {
+        return car == car1 ? racer1 : racer2;
+    }
+
+    private void OnWallHit(CarController car)
+    {
+        if (racing) tracker.WallHit(RacerFor(car));
+    }
+
+    private void OnObstacleHit(CarController car)
+    {
+        if (racing) tracker.ObstacleHit(RacerFor(car));
+    }
+
     private void OnFinishLineCrossed(CarController car, int direction)
     {
         if (!racing || !backwardCrossings.ContainsKey(car)) return;
@@ -132,23 +167,20 @@ public class RaceManager : MonoBehaviour
             return;
         }
 
-        if (car == car1) car1Wins++;
-        else car2Wins++;
+        tracker.FinishLap(RacerFor(car));
         StartCoroutine(EndLap());
     }
 
     private IEnumerator EndLap()
     {
         SetCarsDriving(false);
-        int lapsDone = car1Wins + car2Wins;
+        int lapsDone = racer1.lapsWon + racer2.lapsWon;
         if (lapsDone >= map.requiredLaps)
         {
             Finish();
             yield break;
         }
 
-        messageText.text = $"Lap {lapsDone} of {map.requiredLaps} done!";
-        messageText.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
 
         car1.ResetTo(car1Spawn);
@@ -167,7 +199,6 @@ public class RaceManager : MonoBehaviour
     private IEnumerator Countdown()
     {
         SetCarsDriving(false);
-        messageText.gameObject.SetActive(false);
         countdownImage.gameObject.SetActive(true);
         for (int i = 0; i < countdownSprites.Length; i++)
         {
@@ -196,30 +227,36 @@ public class RaceManager : MonoBehaviour
 
     private void Finish()
     {
+        tracker.FinishRace(map.requiredLaps);
+        int car1Wins = racer1.lapsWon;
+        int car2Wins = racer2.lapsWon;
         if (car1Wins > car2Wins)
             resultText.text = doubles ? "Car 1 wins!" : "You win!";
         else if (car1Wins < car2Wins)
             resultText.text = doubles ? "Car 2 wins!" : "Bot wins!";
         else
             resultText.text = "It's a tie!";
+        resultText.text += $"<size=50%>\n{racer1.name}: {racer1.points} race points\n{racer2.name}: {racer2.points} race points</size>";
 
-        // Prize coins are for Single only, as in pygame.
-        if (!doubles && car1Wins >= car2Wins)
+        // Prize coins and race points are saved for Single only, as in pygame.
+        if (!doubles)
         {
-            SaveService.Data.coins += car1Wins > car2Wins ? WinPrize : TiePrize;
+            if (car1Wins >= car2Wins)
+                SaveService.Data.coins += car1Wins > car2Wins ? WinPrize : TiePrize;
+            SaveService.Data.AddRaceResult(racer1.points, racer2.points);
             SaveService.Save();
             ShowCoins();
         }
 
         lapText.gameObject.SetActive(false);
-        messageText.gameObject.SetActive(false);
         finishPanel.SetActive(true);
     }
 
-    // Coin.Collected is static, so it has to be let go of when the map scene closes.
+    // Coin.Collected and Obstacle.Hit are static, so they have to be let go of when the map scene closes.
     private void OnDestroy()
     {
         Coin.Collected -= ShowCoins;
+        Obstacle.Hit -= OnObstacleHit;
     }
 
     private void ShowCoins()
@@ -229,7 +266,7 @@ public class RaceManager : MonoBehaviour
 
     private void ShowLap()
     {
-        lapText.text = $"Lap {car1Wins + car2Wins + 1}/{map.requiredLaps}";
+        lapText.text = $"Lap {racer1.lapsWon + racer2.lapsWon + 1}/{map.requiredLaps}";
     }
 
     // Called by the button on the finish panel.

@@ -22,9 +22,7 @@ On a road that isn't a loop, close both ends with fences. The fence prefabs are 
 Place **at least 5** `Coin` or `StarCoin` prefabs (`Assets/BTM_Assets/BTM_Items_Gems/Prefabs`) on the road, about 1.3 m above it so cars drive through them. Each race shows 5 random ones, so more spots make races less alike. Doubles has no coins.
 
 ## Obstacles
-Maps with obstacles (see the table below) need **at least 4** obstacle prefabs of the map's type from `Assets/Prefabs`: `Ice`, `Banana` or `Sand`. Each race switches on 4 random ones, so more spots (pygame had 12) make races less alike. Place them on the road where cars drive through them. Maps without obstacles must have none.
-
-**Tools → Car Racing → Place Obstacles** does this for you: it puts 12 obstacles of the right type along the bot route (generate the route first). It replaces every obstacle already in the scene, so move the ones you don't like afterwards instead of placing them all by hand.
+Maps with obstacles (see the table below) use obstacle prefabs of the map's type from `Assets/Prefabs`: `Ice`, `Banana` or `Sand`, placed by hand on the spots where they should be. Each race switches on up to 4 random ones of them; a map with 4 or fewer always shows all of them. Maps without obstacles must have none.
 
 ## Bot route
 The bot drives along the points of a `BotRoute` object. After the road, the finish piece or the `Race` prefab changes, run **Tools → Car Racing → Generate Bot Route**. It replaces the old route. The dots should stay in the middle of the road and end just past the finish line.

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Arcade car movement ported from the pygame Cars class.
@@ -11,6 +12,8 @@ public class CarController : MonoBehaviour
     [SerializeField] private float turnSpeed = 120f;        // degrees per second
     [SerializeField] private float bounceFactor = 0.65f;    // share of speed kept, reversed, after hitting a wall
     [SerializeField] private float spinSpeed = 720f;        // degrees per second on a banana
+
+    public event Action<CarController> WallHit;
 
     private Rigidbody body;
     private int wallLayer;
@@ -108,10 +111,11 @@ public class CarController : MonoBehaviour
         {
             if (Time.time >= driftChangeTime)
             {
-                driftDirection = Random.value < 0.5f ? -1f : 1f;
+                driftDirection = UnityEngine.Random.value < 0.5f ? -1f : 1f;
                 driftChangeTime = Time.time + 1.5f;
             }
-            turn += driftDirection * drift;
+            // Fades out at low speed like steering, so a slow car isn't spun on the spot and can drive off.
+            turn += driftDirection * drift * Mathf.Min(Mathf.Abs(speed) / 5f, 1f);
         }
         body.MoveRotation(body.rotation * Quaternion.Euler(0f, turn * dt, 0f));
 
@@ -124,7 +128,8 @@ public class CarController : MonoBehaviour
     {
         // Only bounce when driving into the wall, so touching two wall pieces at once doesn't flip the speed back.
         bool movingIntoWall = Vector3.Dot(transform.forward * speed, collision.GetContact(0).normal) < 0f;
-        if (collision.gameObject.layer == wallLayer && movingIntoWall)
-            speed = -bounceFactor * speed;
+        if (collision.gameObject.layer != wallLayer) return;
+        if (movingIntoWall) speed = -bounceFactor * speed;
+        WallHit?.Invoke(this);
     }
 }

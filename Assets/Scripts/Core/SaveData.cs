@@ -28,6 +28,13 @@ public class SaveData
         return true;
     }
 
+    // Single only: the race points of the player and the bot go to their totals for the rating.
+    public void AddRaceResult(int points, int botPoints)
+    {
+        racePoints += points;
+        botRacePoints += botPoints;
+    }
+
     // Shown in the rating as "Mission: beat Bot! N race points to go".
     public int PointsToFirstPlace => Math.Max(0, botRacePoints - racePoints + 1);
 }
