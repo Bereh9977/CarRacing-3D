@@ -40,7 +40,7 @@ public class AudioManager : MonoBehaviour
         toggleMusic.Enable();
         nextTrack.Enable();
 
-        SceneManager.sceneLoaded += (scene, mode) => AddClickSounds();
+        SceneManager.sceneLoaded += OnSceneLoaded;
         musicOn = SaveService.Data.musicOn;
         PlayTrack(0);
         if (!musicOn) music.Pause();
@@ -90,7 +90,14 @@ public class AudioManager : MonoBehaviour
         effects.Play();
     }
 
-    private void AddClickSounds()
+    // sceneLoaded is static and the project has no domain reload on Play, so let go of it when Play stops.
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // Every button in the loaded scene plays the click sound.
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         foreach (Button button in FindObjectsByType<Button>(FindObjectsInactive.Include))
             button.onClick.AddListener(() => PlayEffect("button_sound"));
