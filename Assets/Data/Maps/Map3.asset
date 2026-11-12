@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Map3
   m_EditorClassIdentifier: Assembly-CSharp::MapConfig
   sceneName: Map3
-  isFree: 1
+  isFree: 0
   price: 5000
   requiredLaps: 2
   obstacleType: 3

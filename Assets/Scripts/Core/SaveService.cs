@@ -18,6 +18,14 @@ public static class SaveService
         }
     }
 
+    // The project starts Play mode without a domain reload, so static fields keep their values between Play sessions.
+    // Forget the loaded data on every start, so save.json is read again (e.g. after editing it by hand).
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ForgetOnPlay()
+    {
+        data = null;
+    }
+
     public static void Save()
     {
         File.WriteAllText(FilePath, JsonUtility.ToJson(Data, true));
