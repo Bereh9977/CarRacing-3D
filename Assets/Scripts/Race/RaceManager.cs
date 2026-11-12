@@ -30,6 +30,7 @@ public class RaceManager : MonoBehaviour
     private const int WinPrize = 200;
     private const int TiePrize = 100;
     private const int CoinsShown = 5;
+    private const int ObstaclesShown = 4;
 
     private MapConfig map;
     private bool doubles;
@@ -64,7 +65,9 @@ public class RaceManager : MonoBehaviour
             car2.gameObject.AddComponent<BotDriver>().SetRoute(GameObject.Find("BotRoute").transform);
         }
         SetUpCameras();
-        SetUpCoins();
+        // As in pygame: Single shows 5 random coins of the ones placed, Doubles none; every race has 4 random obstacles.
+        KeepRandom(FindObjectsByType<Coin>(), doubles ? 0 : CoinsShown);
+        KeepRandom(FindObjectsByType<Obstacle>(), ObstaclesShown);
 
         FindFirstObjectByType<FinishLine>().Crossed += OnFinishLineCrossed;
         Coin.Collected += ShowCoins;
@@ -102,12 +105,10 @@ public class RaceManager : MonoBehaviour
         camera1.SetTarget(car1.transform);
     }
 
-    // As in pygame, Single shows 5 random coins of the ones placed on the map. Doubles has no coins.
-    private void SetUpCoins()
+    // Leaves `keep` random items on and turns the rest off.
+    private static void KeepRandom(Component[] items, int keep)
     {
-        Coin[] coins = FindObjectsByType<Coin>();
-        var shown = new List<Coin>(coins);
-        int keep = doubles ? 0 : CoinsShown;
+        var shown = new List<Component>(items);
         while (shown.Count > keep)
         {
             int i = Random.Range(0, shown.Count);
