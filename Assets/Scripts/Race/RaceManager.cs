@@ -20,6 +20,7 @@ public class RaceManager : MonoBehaviour
     [SerializeField] private InputActionReference player2Throttle;
     [SerializeField] private InputActionReference player2Steer;
     [SerializeField] private TMP_Text lapText;
+    [SerializeField] private TMP_Text coinsText;
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Image countdownImage;
     [SerializeField] private Sprite[] countdownSprites; // 3, 2, 1, GO from the pygame game
@@ -28,6 +29,7 @@ public class RaceManager : MonoBehaviour
 
     private const int WinPrize = 200;
     private const int TiePrize = 100;
+    private const int CoinsShown = 5;
 
     private MapConfig map;
     private bool doubles;
@@ -62,9 +64,13 @@ public class RaceManager : MonoBehaviour
             car2.gameObject.AddComponent<BotDriver>().SetRoute(GameObject.Find("BotRoute").transform);
         }
         SetUpCameras();
+        SetUpCoins();
 
         FindFirstObjectByType<FinishLine>().Crossed += OnFinishLineCrossed;
+        Coin.Collected += ShowCoins;
         finishPanel.SetActive(false);
+        coinsText.gameObject.SetActive(!doubles); // Doubles has no coins
+        ShowCoins();
         ShowLap();
         StartCoroutine(Countdown());
     }
@@ -94,6 +100,20 @@ public class RaceManager : MonoBehaviour
         }
         camera1 = main.gameObject.AddComponent<CarCamera>();
         camera1.SetTarget(car1.transform);
+    }
+
+    // As in pygame, Single shows 5 random coins of the ones placed on the map. Doubles has no coins.
+    private void SetUpCoins()
+    {
+        Coin[] coins = FindObjectsByType<Coin>();
+        var shown = new List<Coin>(coins);
+        int keep = doubles ? 0 : CoinsShown;
+        while (shown.Count > keep)
+        {
+            int i = Random.Range(0, shown.Count);
+            shown[i].gameObject.SetActive(false);
+            shown.RemoveAt(i);
+        }
     }
 
     private void OnFinishLineCrossed(CarController car, int direction)
@@ -187,11 +207,23 @@ public class RaceManager : MonoBehaviour
         {
             SaveService.Data.coins += car1Wins > car2Wins ? WinPrize : TiePrize;
             SaveService.Save();
+            ShowCoins();
         }
 
         lapText.gameObject.SetActive(false);
         messageText.gameObject.SetActive(false);
         finishPanel.SetActive(true);
+    }
+
+    // Coin.Collected is static, so it has to be let go of when the map scene closes.
+    private void OnDestroy()
+    {
+        Coin.Collected -= ShowCoins;
+    }
+
+    private void ShowCoins()
+    {
+        coinsText.text = $"Coins: {SaveService.Data.coins}";
     }
 
     private void ShowLap()
