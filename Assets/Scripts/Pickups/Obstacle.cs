@@ -25,6 +25,7 @@ public class Obstacle : MonoBehaviour
         if (type == ObstacleType.BananaPeel)
         {
             car.Spin(SpinSeconds);
+            AudioManager.Instance.PlayEffect("spinning");
             Destroy(gameObject);
         }
         else if (type == ObstacleType.SandPile)
@@ -34,6 +35,7 @@ public class Obstacle : MonoBehaviour
         else if (type == ObstacleType.IceCube)
         {
             car.SetDrift(IceDrift);
+            AudioManager.Instance.PlayEffect("ice_sound");
         }
     }
 
